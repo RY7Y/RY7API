@@ -1,22 +1,33 @@
 # wrangler.toml
-# إعداد Cloudflare Worker
-# هذا الملف يحدد إعدادات المشروع وربطه مع الدومين devry7yy.org
+# 📌 إعداد Cloudflare Worker لمشروع RY7 API
+# يتكامل مع KV Storage لتخزين الأكواد المستخدمة بشكل دائم
 
-name = "ry7api"                     # اسم الـ Worker
-main = "worker.js"                  # ملف التشغيل الأساسي
-compatibility_date = "2025-09-24"   # تاريخ التوافق (اختر تاريخ اليوم)
+# 🏷️ اسم الـ Worker
+name = "ry7api"
 
-# 🚀 الربط مع الدومين الخاص بك
+# 📂 ملف التشغيل الأساسي
+main = "worker.js"
+
+# 📅 تاريخ التوافق (استخدم تاريخ اليوم لضمان دعم API الحديث)
+compatibility_date = "2025-09-24"
+
+# 🌍 ربط الـ Worker مع دومينك عبر Cloudflare
 routes = [
     { pattern = "devry7yy.org/api/*", zone_name = "devry7yy.org" }
 ]
 
-# 🌍 المتغيرات (Environment Variables)
+# 🔧 متغيرات البيئة (Environment Variables)
 [vars]
-# رابط ملف الأكواد من GitHub Pages
+# رابط ملف الأكواد من GitHub Pages (للتحقق من الأكواد الأصلية)
 GITHUB_CODES_URL = "https://devry7yy.org/codes.json"
 
+# 🗄️ تعريف KV Namespace لتخزين الأكواد المستخدمة
+[[kv_namespaces]]
+binding = "USED_CODES"         # اسم المتغير اللي ينربط داخل worker.js
+id = "ry7api_used_codes"       # ID أو اسم Namespace (ينشأ من Cloudflare Dashboard)
+
 # ⚠️ ملاحظات:
-# - الكود Vanilla JS، فلا تحتاج build command أو output_dir.
-# - تأكد أن الملف worker.js موجود في جذر المستودع.
-# - إذا غيرت اسم worker.js، عدل السطر main = "worker.js".
+# - إذا غيرت اسم worker.js، لازم تعدل السطر: main = "worker.js".
+# - لازم تنشئ KV Namespace من Cloudflare Dashboard أو CLI:
+#   wrangler kv:namespace create "USED_CODES"
+# - الحقل id = يجيك من Cloudflare لما تنشئ الـ KV.
