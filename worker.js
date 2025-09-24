@@ -2,10 +2,8 @@
 // ✅ RY7 Login API على Cloudflare Workers
 // ✅ يدعم activate + status
 // ✅ يتحقق من الكود (طول 8 فقط)
-// ✅ يقرأ ملف codes.json من GitHub Pages
+// ✅ يقرأ ملف codes.json من GitHub Pages عبر ENV
 // ✅ يمنع إعادة استخدام الكود بربطه مع deviceId
-
-const GITHUB_CODES_URL = "https://devry7yy.org/codes.json";
 
 // 🛠️ كاش مؤقت للـ codes (عشان ما يطلب كل مرة من GitHub)
 let codesCache = null;
@@ -15,12 +13,13 @@ let codesCacheTime = 0;
 const CACHE_DURATION = 60 * 1000;
 
 // 🛠️ استرجاع الأكواد من GitHub
-async function fetchCodes() {
+async function fetchCodes(env) {
   const now = Date.now();
   if (codesCache && now - codesCacheTime < CACHE_DURATION) {
     return codesCache;
   }
-  const res = await fetch(GITHUB_CODES_URL);
+
+  const res = await fetch(env.GITHUB_CODES_URL);
   if (!res.ok) throw new Error("فشل تحميل ملف الأكواد");
   codesCache = await res.json();
   codesCacheTime = now;
@@ -42,6 +41,7 @@ export default {
       const url = new URL(request.url);
       const path = url.pathname;
 
+      // 🔹 تفعيل الكود
       if (path === "/api/activate") {
         if (request.method !== "POST") {
           return jsonResponse({ success: false, message: "الطريقة غير مسموحة 🚫" }, 405);
@@ -60,7 +60,7 @@ export default {
         }
 
         // ✅ قراءة الأكواد
-        const codes = await fetchCodes();
+        const codes = await fetchCodes(env);
 
         let type = null;
         let durationDays = 0;
@@ -94,10 +94,12 @@ export default {
         });
       }
 
+      // 🔹 فحص حالة الـ API
       else if (path === "/api/status") {
         return jsonResponse({ success: true, message: "✅ API شغال" });
       }
 
+      // 🔹 أي مسار غير موجود
       else {
         return jsonResponse({ success: false, message: "❌ مسار API غير موجود" }, 404);
       }
