@@ -2,21 +2,21 @@
 # إعداد Cloudflare Worker
 # هذا الملف يحدد إعدادات المشروع وربطه مع الدومين devry7yy.org
 
-name = "ry7api"                # اسم المشروع
-main = "worker.js"             # ملف التشغيل الأساسي
-compatibility_date = "2025-09-24"  # تاريخ التوافق (اختر تاريخ اليوم)
+name = "ry7api"                     # اسم الـ Worker
+main = "worker.js"                  # ملف التشغيل الأساسي
+compatibility_date = "2025-09-24"   # تاريخ التوافق (اختر تاريخ اليوم)
 
-# 🚀 الربط مع دومينك عبر Cloudflare
+# 🚀 الربط مع الدومين الخاص بك
 routes = [
     { pattern = "devry7yy.org/api/*", zone_name = "devry7yy.org" }
 ]
 
-# 🌍 البيئة (Environment Variables)
+# 🌍 المتغيرات (Environment Variables)
 [vars]
 # رابط ملف الأكواد من GitHub Pages
 GITHUB_CODES_URL = "https://devry7yy.org/codes.json"
 
 # ⚠️ ملاحظات:
-# - لا تحتاج build command لأن الكود Vanilla JS.
-# - لا تحتاج output_dir.
+# - الكود Vanilla JS، فلا تحتاج build command أو output_dir.
+# - تأكد أن الملف worker.js موجود في جذر المستودع.
 # - إذا غيرت اسم worker.js، عدل السطر main = "worker.js".
