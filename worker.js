@@ -4,6 +4,7 @@
 // ✅ يتحقق من الكود (طول 8 فقط)
 // ✅ يخزن الأكواد + يربطها مع UUID (deviceId)
 // ✅ يمنع إعادة استخدام الكود على جهاز آخر
+// ✅ يسمح للجهاز نفسه باستخدام الكود مرة أخرى (تسجيل دخول تلقائي)
 // ✅ يظهر رسائل واضحة للمستخدم عن النجاح/الفشل
 
 // ✅ دالة الرد الموحدة
@@ -56,27 +57,45 @@ export default {
           }, 400);
         }
 
-        // 🛠️ تحقق من الاستخدام السابق
-        if (row.used_by && row.used_by !== deviceId) {
+        // 🗓️ حدد المدة حسب النوع
+        let durationDays = 0;
+        if (row.type === "monthly") durationDays = 30;
+        else if (row.type === "yearly") durationDays = 365;
+        else {
           return jsonResponse({
             success: false,
-            message: "🚫 الكود مستخدم بالفعل على جهاز آخر"
+            message: "⚠️ نوع الكود غير معروف في قاعدة البيانات"
+          }, 400);
+        }
+
+        // 🛠️ تحقق من الاستخدام السابق
+        if (row.deviceId && row.deviceId !== deviceId) {
+          return jsonResponse({
+            success: false,
+            message: "🚫 هذا الكود مستخدم بالفعل على جهاز آخر"
           }, 400);
         }
 
         // ✅ إذا لم يُستخدم من قبل → تحديثه وربطه بالجهاز
-        if (!row.used_by) {
+        if (!row.deviceId) {
           await env.RY7_CODES.prepare(
-            "UPDATE codes SET used_by = ?, used_at = ? WHERE code = ?"
-          ).bind(deviceId, Date.now(), code).run();
+            "UPDATE codes SET deviceId = ?, bundleId = ?, usedAt = ? WHERE code = ?"
+          ).bind(deviceId, bundleId || "unknown", Date.now(), code).run();
+        }
+
+        // ✅ حساب الصلاحية المتبقية
+        let remainingDays = durationDays;
+        if (row.usedAt && row.deviceId === deviceId) {
+          const elapsed = Math.floor((Date.now() - row.usedAt) / (1000 * 60 * 60 * 24));
+          remainingDays = Math.max(durationDays - elapsed, 0);
         }
 
         // ✅ رسالة نجاح
         return jsonResponse({
           success: true,
           type: row.type,
-          remainingDays: row.duration_days,
-          message: `🎉 تم التفعيل بنجاح\n📱 الجهاز: ${deviceName || "غير معروف"}\n📦 التطبيق: ${bundleId || "غير محدد"}\n🔑 النوع: ${row.type}\n⏳ الصلاحية: ${row.duration_days} يوم`
+          remainingDays,
+          message: `🎉 تم التفعيل بنجاح\n📱 الجهاز: ${deviceName || "غير معروف"}\n📦 التطبيق: ${bundleId || "غير محدد"}\n🔑 النوع: ${row.type}\n⏳ الصلاحية: ${remainingDays} يوم`
         });
       }
 
