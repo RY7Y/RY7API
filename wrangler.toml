@@ -1,6 +1,6 @@
 # wrangler.toml
 # 📌 إعداد Cloudflare Worker لمشروع RY7 API
-# يتكامل مع KV Storage لتخزين الأكواد المستخدمة بشكل دائم
+# يتكامل مع D1 Database لتخزين الأكواد واستخدامها بشكل دائم
 
 # 🏷️ اسم الـ Worker
 name = "ry7api"
@@ -18,16 +18,11 @@ routes = [
 
 # 🔧 متغيرات البيئة (Environment Variables)
 [vars]
-# رابط ملف الأكواد من GitHub Pages (للتحقق من الأكواد الأصلية)
+# بإمكانك تخليه فاضي إذا بتعتمد فقط على D1
 GITHUB_CODES_URL = "https://devry7yy.org/codes.json"
 
-# 🗄️ تعريف KV Namespace لتخزين الأكواد المستخدمة
-[[kv_namespaces]]
-binding = "USED_CODES"         # اسم المتغير اللي ينربط داخل worker.js
-id = "ry7api_used_codes"       # ID أو اسم Namespace (ينشأ من Cloudflare Dashboard)
-
-# ⚠️ ملاحظات:
-# - إذا غيرت اسم worker.js، لازم تعدل السطر: main = "worker.js".
-# - لازم تنشئ KV Namespace من Cloudflare Dashboard أو CLI:
-#   wrangler kv:namespace create "USED_CODES"
-# - الحقل id = يجيك من Cloudflare لما تنشئ الـ KV.
+# 🗄️ تعريف قاعدة بيانات D1
+[[d1_databases]]
+binding = "RY7_CODES"         # نفس الاسم اللي استخدمناه داخل worker.js
+database_name = "ry7-codes"   # اسم القاعدة
+database_id = "xxxxxxxxxxxx"  # يطلع لك من Cloudflare لما تنشئ القاعدة
