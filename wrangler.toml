@@ -25,4 +25,4 @@ GITHUB_CODES_URL = "https://devry7yy.org/codes.json"
 [[d1_databases]]
 binding = "RY7_CODES"         # نفس الاسم اللي استخدمناه داخل worker.js
 database_name = "ry7-codes"   # اسم القاعدة
-database_id = "xxxxxxxxxxxx"  # يطلع لك من Cloudflare لما تنشئ القاعدة
+database_id = "adcd2714-2ed4-4e6d-a326-880b81bf44d4"  # يطلع لك من Cloudflare لما تنشئ القاعدة
