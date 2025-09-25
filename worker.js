@@ -39,7 +39,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>لوحة أكواد RY7</title>
+<title>RY7Code New</title>
 <style>
   :root{
     --bg:#0b0f17;--card:#101726;--muted:#9aa4b2;--line:#1e2a3a;
