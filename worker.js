@@ -273,30 +273,33 @@ function status(r) {
   return '<span class="badge b-active">نشط • متبقي '+left+' يوم</span>';
 }
 function tableFor(list) {
-  if (!list.length) return "<div style='text-align:center;color:var(--muted)'>لا يوجد</div>";
-  return "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th style='font-size:10px'>الإنشاء</th><th>إجراءات</th></tr></thead><tbody>" +
-    list.map(r => `<tr>
-      <td>${r.code}</td>
-      <td>${r.type === "yearly" ? "سنوي" : "شهري"}</td>
-      <td>${status(r)}</td>
-      <td style='font-size:10px;color:var(--muted)'>${fmt(r.createdAt)}</td>
-      <td class='actions'>
-        <button class="iconbtn" onclick="copyCode('${r.code}')" title="نسخ">📋</button>
-        <button class="iconbtn" onclick="resetCode('${r.code}')" title="إعادة">♻️</button>
-        <button class="iconbtn" onclick="delCode('${r.code}')" title="حذف">🗑️</button>
-      </td>
-    </tr>`).join("") + "</tbody></table>";
-}
-function refresh() {
-  api("/api/list").then(j => {
-    window.__all = j;
-    document.getElementById("unused").innerHTML = tableFor(j.unused);
-    document.getElementById("used").innerHTML = tableFor(j.used);
-    document.getElementById("expired").innerHTML = tableFor(j.expired);
-    document.getElementById("countUnused").textContent = "الإجمالي: "+j.unused.length;
-    document.getElementById("countUsed").textContent = "الإجمالي: "+j.used.length;
-    document.getElementById("countExpired").textContent = "الإجمالي: "+j.expired.length;
-  });
+  if (!list.length)
+    return "<div style='text-align:center;color:var(--muted)'>لا يوجد</div>";
+
+  let rows = list.map((r) => {
+    const typeLabel = r.type === "yearly" ? "سنوي" : "شهري";
+    const statusLabel = status(r);
+    const createdAt = fmt(r.createdAt);
+    return (
+      "<tr>" +
+        `<td>${r.code}</td>` +
+        `<td>${typeLabel}</td>` +
+        `<td>${statusLabel}</td>` +
+        `<td style='font-size:10px;color:var(--muted)'>${createdAt}</td>` +
+        `<td class='actions'>
+          <button class="iconbtn" onclick="copyCode('${r.code}')" title="نسخ">📋</button>
+          <button class="iconbtn" onclick="resetCode('${r.code}')" title="إعادة">♻️</button>
+          <button class="iconbtn" onclick="delCode('${r.code}')" title="حذف">🗑️</button>
+        </td>` +
+      "</tr>"
+    );
+  }).join("");
+
+  return (
+    "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th style='font-size:10px'>الإنشاء</th><th>إجراءات</th></tr></thead><tbody>" +
+    rows +
+    "</tbody></table>"
+  );
 }
 function filterUnused(type) {
   const all = window.__all?.unused || [];
