@@ -66,32 +66,39 @@ const ADMIN_HTML = `<!DOCTYPE html>
     margin:0;
     background:var(--bg);
     color:var(--txt);
+    padding:0;
+    min-height: 100vh;
     display:flex;
-    justify-content:center;
-    padding:20px;
+    flex-direction:column;
   }
+
   .wrap {
     width:100%;
-    max-width:1200px;
+    padding:16px;
     display:flex;
     flex-direction:column;
     gap:20px;
+    flex: 1;
   }
+
   header {
     display:flex;
     align-items:center;
     justify-content:center;
     position:relative;
+    padding:8px 0;
   }
+
   h1 {
     text-align:center;
     font-size:32px;
     margin:10px 0;
     color:var(--brand2);
   }
+
   .theme-toggle {
     position:absolute;
-    right:0;
+    right:16px;
     background:transparent;
     border:1px solid var(--line);
     border-radius:50%;
@@ -126,6 +133,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
     background:var(--bg);
     color:var(--txt);
   }
+
   .btn {
     background:linear-gradient(90deg,var(--brand),var(--brand2));
     border:none;
@@ -133,6 +141,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
     font-weight:600;
     cursor:pointer;
   }
+
   .btn.ghost {
     background:transparent;
     color:var(--txt);
@@ -145,11 +154,13 @@ const ADMIN_HTML = `<!DOCTYPE html>
     margin-top:10px;
     font-size:14px;
   }
+
   th,td {
     padding:10px;
     border-bottom:1px solid var(--line);
     text-align:center;
   }
+
   th {
     color:var(--muted);
     font-weight:600;
@@ -161,6 +172,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
     font-size:12px;
     display:inline-block;
   }
+
   .b-new { background:#0b2a1a; color:#22c55e }
   .b-active { background:#071b2a; color:#60d5ff }
   .b-exp { background:#2a0b0e; color:#ef4444 }
@@ -170,6 +182,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
     gap:8px;
     justify-content:center;
   }
+
   .iconbtn {
     border:none;
     background:transparent;
@@ -178,6 +191,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
     border-radius:8px;
     transition:0.2s;
   }
+
   .iconbtn:hover {
     background:rgba(255,255,255,0.08);
   }
@@ -202,6 +216,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
     justify-content:center;
     margin-bottom:10px;
   }
+
   .tabs button {
     flex:1;
     max-width:140px;
@@ -276,23 +291,23 @@ function status(r){
 function tableFor(list){
   if(!list.length) return "<div class='muted' style='text-align:center'>لا يوجد</div>";
   return "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th>إنشاء</th><th>إجراءات</th></tr></thead><tbody>"+
-    list.map(r=>\`<tr>
-      <td>\${r.code}</td>
-      <td>\${r.type==="yearly"?"سنوي":"شهري"}</td>
-      <td>\${status(r)}</td>
-      <td>\${fmt(r.createdAt)}</td>
+    list.map(r=>`<tr>
+      <td>${r.code}</td>
+      <td>${r.type==="yearly"?"سنوي":"شهري"}</td>
+      <td>${status(r)}</td>
+      <td>${fmt(r.createdAt)}</td>
       <td class='actions'>
-        <button class="iconbtn" onclick="copyCode('\${r.code}')" title="نسخ">
+        <button class="iconbtn" onclick="copyCode('${r.code}')" title="نسخ">
           <svg fill="#60a5fa" viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 00-2 2v12h2V3h12V1zm3 4H8a2 2 0 00-2 2v14h13a2 2 0 002-2V7a2 2 0 00-2-2z"/></svg>
         </button>
-        <button class="iconbtn" onclick="resetCode('\${r.code}')" title="إعادة">
+        <button class="iconbtn" onclick="resetCode('${r.code}')" title="إعادة">
           <svg fill="#22c55e" viewBox="0 0 24 24"><path d="M12 6V3L8 7l4 4V8a4 4 0 110 8h-1v2h1a6 6 0 000-12z"/></svg>
         </button>
-        <button class="iconbtn" onclick="delCode('\${r.code}')" title="حذف">
+        <button class="iconbtn" onclick="delCode('${r.code}')" title="حذف">
           <svg fill="#ef4444" viewBox="0 0 24 24"><path d="M6 7h12v2H6zm2 3h8l-1 10H9L8 10zm3-6h2l1 2h-4l1-2z"/></svg>
         </button>
       </td>
-    </tr>\`).join("")+"</tbody></table>";
+    </tr>`).join("")+"</tbody></table>";
 }
 
 function refresh(){api("/api/list").then(j=>{window.__all=j;document.getElementById("unused").innerHTML=tableFor(j.unused);document.getElementById("used").innerHTML=tableFor(j.used);document.getElementById("expired").innerHTML=tableFor(j.expired);});}
@@ -302,13 +317,13 @@ function resetCode(code){api("/api/reset",{method:"POST",body:JSON.stringify({co
 function copyCode(code){navigator.clipboard.writeText(code).then(()=>toast("نسخ "+code));}
 document.getElementById("btnGen").onclick=()=>{const type=document.getElementById("genType").value;const count=parseInt(document.getElementById("genCount").value||1);api("/api/generate",{method:"POST",body:JSON.stringify({type,count})}).then(j=>{toast("تم توليد "+(j.generated||[]).length);refresh();});}
 document.getElementById("btnRefresh").onclick=refresh;
-document.getElementById("btnImport").onclick=()=>{const type="monthly";const codes=document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{toast(j.message);refresh();});}
-document.getElementById("btnCopyAll").onclick=()=>{const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];if(!all.length)return toast("لا توجد أكواد");const txt=all.map(r=>\`\${r.code} - \${r.type}\`).join("\\n");navigator.clipboard.writeText(txt).then(()=>toast("تم نسخ جميع الأكواد"));};
+document.getElementById("btnImport").onclick=()=>{const type="monthly";const codes=document.getElementById("bulkBox").value.split(/\r?\n/).filter(Boolean);api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{toast(j.message);refresh();});}
+document.getElementById("btnCopyAll").onclick=()=>{const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];if(!all.length)return toast("لا توجد أكواد");const txt=all.map(r=>`${r.code} - ${r.type}`).join("\n");navigator.clipboard.writeText(txt).then(()=>toast("تم نسخ جميع الأكواد"));};
 function toggleTheme(){const b=document.body;const isLight=b.getAttribute("data-theme")==="light";b.setAttribute("data-theme",isLight?"dark":"light");}
 refresh();
 </script>
 </body>
-</html>`;
+</html>
 
 
 // 🔠 مولد الأكواد
