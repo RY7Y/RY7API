@@ -22,57 +22,47 @@ const ADMIN_HTML = `<!DOCTYPE html>
   @font-face {
     font-family: 'MontserratArabic';
     src: url('Montserrat-Arabic-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
   }
-
   :root {
     --bg:#0b0f17; --card:#101726; --txt:#e6edf3; --muted:#9aa4b2;
     --line:#1e2a3a; --brand:#6ee7ff; --brand2:#8b5cf6;
-    --good:#22c55e; --bad:#ef4444; --warn:#f59e0b; --info:#3b82f6;
+    --good:#22c55e; --bad:#ef4444; --warn:#f59e0b;
   }
   [data-theme="light"] {
     --bg:#f5f5f5; --card:#ffffff; --txt:#222; --muted:#666;
     --line:#ddd; --brand:#06b6d4; --brand2:#9333ea;
-    --good:#16a34a; --bad:#dc2626; --warn:#d97706; --info:#2563eb;
   }
-
-*{box-sizing:border-box;font-family:'MontserratArabic',sans-serif}
-body{margin:0;background:var(--bg);color:var(--txt);display:flex;justify-content:center;padding:0}
-.wrap{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:20px}
-header{display:flex;align-items:center;justify-content:center;position:relative}
-h1{text-align:center;font-size:28px;margin:10px 0;color:var(--brand2)}
-.theme-toggle{position:absolute;right:0;background:transparent;border:1px solid var(--line);border-radius:50%;padding:8px;cursor:pointer;font-size:18px;color:var(--txt)}
-
-.card{background:var(--card);border:1px solid var(--line);border-radius:0;padding:0;margin:0;width:100vw;box-shadow:none}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;padding:16px}
-select,input,button,textarea{padding:10px 12px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--txt)}
-.btn{background:linear-gradient(90deg,var(--brand),var(--brand2));border:none;color:#fff;font-weight:600;cursor:pointer}
-.btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
-
-table{width:100vw;border-collapse:collapse;margin:0;font-size:11px}
-th,td{padding:6px;border-bottom:1px solid var(--line);text-align:center}
-th{color:var(--muted);font-weight:600;font-size:11px}
-
-.badge{padding:3px 8px;border-radius:999px;font-size:11px;display:inline-block}
-.b-new{background:#0b2a1a;color:#22c55e}
-.b-active{background:#071b2a;color:#60d5ff}
-.b-exp{background:#2a0b0e;color:#ef4444}
-
-.actions{display:flex;gap:8px;justify-content:center}
-.iconbtn{border:none;background:transparent;cursor:pointer;padding:6px;border-radius:8px;transition:0.2s}
-.iconbtn:hover{background:rgba(255,255,255,0.08)}
-.iconbtn svg{width:18px;height:18px}
-
-.alert{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:12px 18px;border-radius:10px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.2);animation:fadeIn 0.3s ease;z-index:9999}
-.alert.success{background:var(--good);color:#fff}
-.alert.error{background:var(--bad);color:#fff}
-.alert.warn{background:var(--warn);color:#fff}
-.alert.info{background:var(--info);color:#fff}
-
-@keyframes fadeIn{from{opacity:0;transform:translate(-50%,20px);}to{opacity:1;transform:translate(-50%,0);}}
-
-.tabs{display:flex;gap:10px;justify-content:center;margin-bottom:10px}
-.tabs button{flex:1;max-width:140px}
-.count{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+  *{box-sizing:border-box;font-family:'MontserratArabic',sans-serif}
+  body{margin:0;background:var(--bg);color:var(--txt);}
+  .wrap{max-width:1200px;margin:auto;padding:20px}
+  header{display:flex;align-items:center;justify-content:center;position:relative}
+  h1{text-align:center;font-size:32px;margin:10px 0;animation:glow 2s infinite alternate;}
+  @keyframes glow {
+    from{text-shadow:0 0 8px var(--brand),0 0 16px var(--brand2);}
+    to{text-shadow:0 0 16px var(--brand2),0 0 32px var(--brand);}
+  }
+  .theme-toggle{position:absolute;right:0;background:transparent;border:1px solid var(--line);border-radius:50%;padding:8px;cursor:pointer;font-size:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+  select,input,button,textarea{padding:10px 12px;font-size:14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--txt)}
+  .btn{background:linear-gradient(90deg,var(--brand),var(--brand2));border:none;color:#fff;font-weight:600;cursor:pointer}
+  .btn.ghost{background:transparent;color:var(--txt)}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+  th,td{padding:8px;border-bottom:1px solid var(--line);text-align:center}
+  th{color:var(--muted);font-weight:600}
+  .badge{padding:3px 8px;border-radius:999px;font-size:12px;display:inline-block}
+  .b-new{background:#0b2a1a;color:#22c55e}
+  .b-active{background:#071b2a;color:#60d5ff}
+  .b-exp{background:#2a0b0e;color:#ef4444}
+  .actions{display:flex;gap:6px;justify-content:center}
+  .iconbtn{border:none;background:transparent;cursor:pointer;padding:6px;border-radius:8px;transition:0.2s}
+  .iconbtn:hover{background:rgba(255,255,255,0.08)}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);color:var(--txt);padding:10px 14px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.2);display:none;font-size:14px}
+  .tabs{display:flex;gap:10px;justify-content:center;margin-bottom:10px}
+  .tabs button{flex:1;max-width:120px}
+  svg{width:18px;height:18px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -94,85 +84,79 @@ th{color:var(--muted);font-weight:600;font-size:11px}
     </div>
     <textarea id="bulkBox" rows="3" style="width:100%;margin-top:8px" placeholder="RYABC123&#10;RYXYZ789"></textarea>
     <button id="btnImport" class="btn" style="margin-top:8px">استيراد دفعي</button>
+    <div id="msg" style="margin-top:6px;color:var(--muted)"></div>
   </div>
 
   <div class="card">
-    <h2 style="text-align:center">أكواد جديدة</h2>
+    <h2>أكواد جديدة</h2>
     <div class="tabs">
       <button class="btn ghost" onclick="filterUnused('monthly')">📅 شهري</button>
       <button class="btn ghost" onclick="filterUnused('yearly')">📆 سنوي</button>
     </div>
     <div id="unused"></div>
-    <div id="countUnused" class="count"></div>
   </div>
 
   <div class="card">
-    <h2 style="text-align:center">أكواد مستخدمة</h2>
+    <h2>أكواد مستخدمة</h2>
     <div id="used"></div>
-    <div id="countUsed" class="count"></div>
   </div>
 
   <div class="card">
-    <h2 style="text-align:center">أكواد منتهية</h2>
+    <h2>أكواد منتهية</h2>
     <div id="expired"></div>
-    <div id="countExpired" class="count"></div>
   </div>
 </div>
 
+<div id="toast" class="toast"></div>
+
 <script>
-const token=new URLSearchParams(location.search).get("token")||"";
+const token = new URLSearchParams(location.search).get("token") || "";
 function api(path,opt={}){opt.headers=Object.assign({},opt.headers||{},{"X-Admin-Token":token,"Content-Type":"application/json"});return fetch(path,opt).then(r=>r.json());}
-
-function alertBox(type,msg){
-  const div=document.createElement("div");
-  div.className="alert "+type;
-  div.innerHTML=(type==="success"?"✅":type==="error"?"❌":type==="warn"?"⚠️":"ℹ️")+" "+msg;
-  document.body.appendChild(div);
-  setTimeout(()=>{div.remove();},2500);
-}
-
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",2000);}
 function fmt(t){return t?new Date(Number(t)).toLocaleString("ar-SA"):"-";}
-function status(r){if(!r.usedAt)return'<span class="badge b-new">لم يبدأ بعد</span>';const dur=r.type==="yearly"?365:30;const end=r.usedAt+dur*86400000;if(Date.now()>=end)return'<span class="badge b-exp">منتهي</span>';const left=Math.ceil((end-Date.now())/86400000);return'<span class="badge b-active">نشط • متبقي '+left+' يوم</span>';}
 
-function tableFor(list){if(!list.length)return"<div style='text-align:center;color:var(--muted)'>لا يوجد</div>";
-  return "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th>الإنشاء</th><th>إجراءات</th></tr></thead><tbody>"+
-  list.map(r=>\`<tr>
-    <td>\${r.code}</td>
-    <td>\${r.type==="yearly"?"سنوي":"شهري"}</td>
-    <td>\${status(r)}</td>
-    <td style="font-size:10px;color:var(--muted)">\${fmt(r.createdAt)}</td>
-    <td class='actions'>
-      <button class="iconbtn" onclick="copyCode('\${r.code}')">📋</button>
-      <button class="iconbtn" onclick="resetCode('\${r.code}')">♻️</button>
-      <button class="iconbtn" onclick="delCode('\${r.code}')">🗑️</button>
-    </td>
-  </tr>\`).join("")+"</tbody></table>";
+function status(r){
+  if(!r.usedAt) return '<span class="badge b-new">لم يبدأ بعد</span>';
+  const dur=r.type==="yearly"?365:30;
+  const end=r.usedAt+dur*86400000;
+  if(Date.now()>=end) return '<span class="badge b-exp">منتهي</span>';
+  const left=Math.ceil((end-Date.now())/86400000);
+  return '<span class="badge b-active">نشط • متبقي '+left+' يوم</span>';
 }
 
-function refresh(){api("/api/list").then(j=>{window.__all=j;
-  document.getElementById("unused").innerHTML=tableFor(j.unused);
-  document.getElementById("used").innerHTML=tableFor(j.used);
-  document.getElementById("expired").innerHTML=tableFor(j.expired);
-  document.getElementById("countUnused").textContent="الإجمالي: "+j.unused.length;
-  document.getElementById("countUsed").textContent="الإجمالي: "+j.used.length;
-  document.getElementById("countExpired").textContent="الإجمالي: "+j.expired.length;
-});}
+function tableFor(list){
+  if(!list.length) return "<div class='muted'>لا يوجد</div>";
+  return "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th>إنشاء</th><th>إجراءات</th></tr></thead><tbody>"+
+    list.map(r=>\`<tr>
+      <td>\${r.code}</td>
+      <td>\${r.type==="yearly"?"سنوي":"شهري"}</td>
+      <td>\${status(r)}</td>
+      <td>\${fmt(r.createdAt)}</td>
+      <td class='actions'>
+        <button class="iconbtn" onclick="copyCode('\${r.code}')" title="نسخ">
+          <svg fill="#60a5fa" viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 00-2 2v12h2V3h12V1zm3 4H8a2 2 0 00-2 2v14h13a2 2 0 002-2V7a2 2 0 00-2-2z"/></svg>
+        </button>
+        <button class="iconbtn" onclick="resetCode('\${r.code}')" title="إعادة">
+          <svg fill="#22c55e" viewBox="0 0 24 24"><path d="M12 6V3L8 7l4 4V8a4 4 0 110 8h-1v2h1a6 6 0 000-12z"/></svg>
+        </button>
+        <button class="iconbtn" onclick="delCode('\${r.code}')" title="حذف">
+          <svg fill="#ef4444" viewBox="0 0 24 24"><path d="M6 7h12v2H6zm2 3h8l-1 10H9L8 10zm3-6h2l1 2h-4l1-2z"/></svg>
+        </button>
+      </td>
+    </tr>\`).join("")+"</tbody></table>";
+}
 
-function filterUnused(type){const all=window.__all?.unused||[];document.getElementById("unused").innerHTML=tableFor(all.filter(r=>r.type===type));document.getElementById("countUnused").textContent="الإجمالي: "+all.filter(r=>r.type===type).length;}
-
-function delCode(code){api("/api/delete",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("success","🗑️ حذف "+code);refresh();});}
-function resetCode(code){api("/api/reset",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("info","♻️ إعادة "+code);refresh();});}
-function copyCode(code){navigator.clipboard.writeText(code).then(()=>alertBox("success","📋 نسخ "+code));}
-
-window.addEventListener("DOMContentLoaded",()=>{
-  document.getElementById("btnGen").onclick=()=>{const type=document.getElementById("genType").value;const count=parseInt(document.getElementById("genCount").value||1);api("/api/generate",{method:"POST",body:JSON.stringify({type,count})}).then(j=>{alertBox("success","🎉 تم توليد "+(j.generated||[]).length+" كود");refresh();});};
-  document.getElementById("btnRefresh").onclick=()=>{refresh();alertBox("info","🔄 تم التحديث");};
-  document.getElementById("btnImport").onclick=()=>{const type=document.getElementById("genType").value;const codes=document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{alertBox("warn",j.message);refresh();});};
-  document.getElementById("btnCopyAll").onclick=()=>{const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];if(!all.length)return alertBox("error","⚠️ لا توجد أكواد");const txt=all.map(r=>r.code).join("\\n");navigator.clipboard.writeText(txt).then(()=>alertBox("success","📋 تم نسخ جميع الأكواد"));};
-  refresh();
-});
-
+function refresh(){api("/api/list").then(j=>{window.__all=j;document.getElementById("unused").innerHTML=tableFor(j.unused);document.getElementById("used").innerHTML=tableFor(j.used);document.getElementById("expired").innerHTML=tableFor(j.expired);});}
+function filterUnused(type){const all=window.__all?.unused||[];const filtered=all.filter(r=>r.type===type);document.getElementById("unused").innerHTML=tableFor(filtered);}
+function delCode(code){api("/api/delete",{method:"POST",body:JSON.stringify({code})}).then(()=>{toast("تم الحذف");refresh();});}
+function resetCode(code){api("/api/reset",{method:"POST",body:JSON.stringify({code})}).then(()=>{toast("تم إعادة التعيين");refresh();});}
+function copyCode(code){navigator.clipboard.writeText(code).then(()=>toast("نسخ "+code));}
+document.getElementById("btnGen").onclick=()=>{const type=document.getElementById("genType").value;const count=parseInt(document.getElementById("genCount").value||1);api("/api/generate",{method:"POST",body:JSON.stringify({type,count})}).then(j=>{toast("تم توليد "+(j.generated||[]).length);refresh();});}
+document.getElementById("btnRefresh").onclick=refresh;
+document.getElementById("btnImport").onclick=()=>{const type="monthly";const codes=document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{toast(j.message);refresh();});}
+document.getElementById("btnCopyAll").onclick=()=>{const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];if(!all.length)return toast("لا توجد أكواد");const txt=all.map(r=>\`\${r.code} - \${r.type}\`).join("\\n");navigator.clipboard.writeText(txt).then(()=>toast("تم نسخ جميع الأكواد"));};
 function toggleTheme(){const b=document.body;const isLight=b.getAttribute("data-theme")==="light";b.setAttribute("data-theme",isLight?"dark":"light");}
+refresh();
 </script>
 </body>
 </html>`;
