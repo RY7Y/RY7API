@@ -19,7 +19,6 @@
 // [vars]
 // ADMIN_TOKEN = "RY7YYAPICODESB"
 
-// ✅ دوال المخرجات
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
     status,
@@ -28,10 +27,7 @@ function jsonResponse(data, status = 200) {
 }
 
 function textResponse(html, status = 200) {
-  return new Response(html, {
-    status,
-    headers: { "Content-Type": "text/html; charset=utf-8" }
-  });
+  return new Response(html, { status, headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
 
 // ✅ لوحة الأكواد HTML مضمنة مباشرة (بدل admin.html خارجي)
@@ -357,30 +353,34 @@ function toggleTheme(){
 </body>
 </html>`;
 
-// 🔠 مولد الأكواد (عشوائي فقط)const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";// 🔠 مولد كود عشوائي
+// 🔠 مولد الأكواد (عشوائي فقط)const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";// 🔠 مولد كود عشوائي// حروف توليد الأكواد (بدون O/0 و I/1 لتجنب اللخبطة)
+const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 function randomCode(len = 8) {
-  return Array
-    .from({ length: len }, () => {
-      const index = Math.floor(Math.random() * ALPH.length);
-      return ALPH[index];
-    })
-    .join("");
+  let s = "";
+  for (let i = 0; i < len; i++) s += ALPH[Math.floor(Math.random() * ALPH.length)];
+  return s;
 }
 
+// التحقق من التوكن الإداري
 function isAdmin(request, env, url) {
   const q = url.searchParams.get("token");
   const h = request.headers.get("X-Admin-Token");
   return !!env.ADMIN_TOKEN && (q === env.ADMIN_TOKEN || h === env.ADMIN_TOKEN);
 }
 
-const CREATE_SQL = `CREATE TABLE IF NOT EXISTS codes (
+*/
+
+// ننشئ الجدول إن لم يكن موجوداً
+const CREATE_SQL = `
+CREATE TABLE IF NOT EXISTS codes (
   code TEXT PRIMARY KEY,
-  type TEXT NOT NULL,
-  deviceId TEXT,
-  bundleId TEXT,
-  usedAt INTEGER DEFAULT 0,
-  createdAt INTEGER DEFAULT 0
-);`;
+  type TEXT NOT NULL,           -- 'monthly' | 'yearly'
+  deviceId TEXT,                -- UUID الجهاز إن استُخدم
+  bundleId TEXT,                -- حزمة التطبيق إن استُخدم
+  usedAt INTEGER DEFAULT 0,     -- وقت الاستخدام (ms)
+  createdAt INTEGER DEFAULT 0   -- وقت الإنشاء (ms)
+);
+`;
 
 async function ensureSchema(env) {
   await env.RY7_CODES.exec(CREATE_SQL);
@@ -402,31 +402,21 @@ function splitLists(rows) {
   return { unused, used, expired };
 }
 
-function textResponse(body, status = 200) {
-  return new Response(body, {
-    status,
-    headers: { "Content-Type": "text/html; charset=utf-8" },
-  });
-}
-
-function jsonResponse(obj, status = 200) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
 
     try {
+      // قدّم لوحة الإدارة
       if (path === "/admin") {
-        if (!isAdmin(request, env, url)) return textResponse("<h3>Unauthorized</h3>", 401);
+        if (!isAdmin(request, env, url)) {
+          return textResponse("<h3 style='font-family:sans-serif'>Unauthorized</h3>", 401);
+        }
         return textResponse(ADMIN_HTML);
       }
 
+      // تأكد من وجود الجدول
       await ensureSchema(env);
 
       // ✅ تفعيل الكود
