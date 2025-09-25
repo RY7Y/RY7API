@@ -41,125 +41,76 @@ const ADMIN_HTML = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>RY7Code New</title>
 <style>
-  :root{
-    --bg:#0b0f17;--card:#101726;--muted:#9aa4b2;--line:#1e2a3a;
-    --txt:#e6edf3;--brand:#6ee7ff;--brand2:#8b5cf6;--good:#22c55e;--bad:#ef4444;--warn:#f59e0b;
+  :root {
+    --bg:#0b0f17; --card:#101726; --txt:#e6edf3; --muted:#9aa4b2;
+    --line:#1e2a3a; --brand:#6ee7ff; --brand2:#8b5cf6;
+    --good:#22c55e; --bad:#ef4444; --warn:#f59e0b;
+  }
+  [data-theme="light"] {
+    --bg:#f5f5f5; --card:#fff; --txt:#222; --muted:#666;
+    --line:#ddd; --brand:#06b6d4; --brand2:#9333ea;
   }
   *{box-sizing:border-box}
-  body{font-family:-apple-system,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:radial-gradient(1200px 600px at 80% -10%,rgba(139,92,246,.18),transparent),linear-gradient(180deg,rgba(110,231,255,.08),transparent 50%),var(--bg);color:var(--txt);margin:0}
-  .wrap{max-width:1120px;margin:auto;padding:22px}
-  h1{margin:8px 0 18px;font-size:34px;letter-spacing:.5px}
-  .sub{color:var(--muted);font-size:14px;margin-top:-4px}
-  .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border:1px solid var(--line);border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 6px 24px rgba(0,0,0,.12)}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  input,select,button,textarea{font-size:16px;padding:12px 12px;border-radius:12px;border:1px solid var(--line);background:#0d1320;color:var(--txt);outline:none}
-  input:focus,select:focus,textarea:focus{border-color:#334b6b;box-shadow:0 0 0 3px rgba(110,231,255,.18)}
-  .btn{cursor:pointer;border:none;display:inline-flex;align-items:center;gap:8px;padding:12px 14px;border-radius:12px;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#051018;font-weight:700}
-  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--txt)}
-  .btn.warn{background:linear-gradient(90deg,#fca5a5,#fb7185);color:#160a0a}
-  .btn svg{width:18px;height:18px}
-  .split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media(max-width:920px){.split{grid-template-columns:1fr}}
-  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#0e1625;color:var(--muted);font-size:13px}
-  .list h2{margin:0 0 10px;font-size:22px}
-  table{width:100%;border-collapse:collapse}
-  th,td{border-bottom:1px solid var(--line);padding:10px;text-align:right}
-  th{color:var(--muted);font-weight:600}
-  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-  .badge{padding:4px 10px;border-radius:999px;font-size:12px;border:1px solid var(--line);display:inline-flex;align-items:center;gap:6px}
-  .b-new{background:#0b2a1a;border-color:#173929;color:#8ef3b6}
-  .b-active{background:#071b2a;border-color:#15324b;color:#60d5ff}
-  .b-exp{background:#2a0b0e;border-color:#3f0d12;color:#fca5a5}
-  .muted{color:var(--muted)}
+  body{margin:0;font-family:-apple-system,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt);}
+  .wrap{max-width:1200px;margin:auto;padding:22px}
+  h1{text-align:center;font-size:36px;margin:0;position:relative;animation:glow 2s infinite alternate;}
+  @keyframes glow {
+    from{text-shadow:0 0 10px var(--brand),0 0 20px var(--brand2);}
+    to{text-shadow:0 0 20px var(--brand2),0 0 40px var(--brand);}
+  }
+  .theme-toggle{position:absolute;top:22px;right:22px;background:transparent;border:1px solid var(--line);border-radius:50%;padding:8px;cursor:pointer}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0;box-shadow:0 4px 20px rgba(0,0,0,.12)}
+  .toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center}
+  select,input,button{padding:10px 14px;font-size:15px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--txt)}
+  button{cursor:pointer}
+  .btn{background:linear-gradient(90deg,var(--brand),var(--brand2));border:none;color:#fff;font-weight:600}
+  .btn.ghost{background:transparent;color:var(--txt)}
+  table{width:100%;border-collapse:collapse;margin-top:12px}
+  th,td{padding:10px;border-bottom:1px solid var(--line);text-align:right}
+  th{color:var(--muted)}
+  .badge{padding:4px 10px;border-radius:999px;font-size:12px;display:inline-block}
+  .b-new{background:#0b2a1a;color:#22c55e}
+  .b-active{background:#071b2a;color:#60d5ff}
+  .b-exp{background:#2a0b0e;color:#ef4444}
   .actions{display:flex;gap:6px}
-  .iconbtn{background:transparent;border:1px solid var(--line);border-radius:10px;padding:8px;cursor:pointer}
-  .iconbtn:hover{border-color:#375072}
-  .hint{font-size:12px;color:var(--muted)}
-  .toast{position:fixed;inset-inline:0;bottom:18px;margin:auto;background:rgba(13,19,32,.96);backdrop-filter:blur(8px);color:var(--txt);border:1px solid var(--line);padding:12px 14px;border-radius:12px;max-width:420px;text-align:center;box-shadow:0 10px 36px rgba(0,0,0,.3);display:none}
-  .spinner{width:18px;height:18px;border-radius:50%;border:3px solid #27415f;border-left-color:var(--brand);animation:s .8s linear infinite}
-  @keyframes s{to{transform:rotate(360deg)}}
-  details{border:1px dashed var(--line);border-radius:12px;padding:10px}
-  details[open]{background:#0c1524}
-  summary{cursor:pointer;color:var(--muted)}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);color:var(--txt);padding:12px 16px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.2);display:none}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>لوحة أكواد RY7</h1>
-  <div class="sub">إدارة الأكواد مع D1: توليد، استيراد، متابعة الحالة والمدة المتبقية.</div>
+  <button class="theme-toggle" onclick="toggleTheme()">☀️/🌙</button>
+  <h1>RY7Code New</h1>
 
   <div class="card">
     <div class="toolbar">
-      <span class="pill">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5H7z"/></svg>
-        <label>النوع:</label>
-        <select id="genType">
-          <option value="monthly">شهري (30 يوم)</option>
-          <option value="yearly">سنوي (365 يوم)</option>
-        </select>
-      </span>
-      <span class="pill">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 11h10v2H7z"/></svg>
-        <label>العدد:</label>
-        <input id="genCount" type="number" value="5" min="1" max="200" style="width:90px"/>
-      </span>
-
-      <button id="btnGen" class="btn">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 100 18 9 9 0 000-18zm1 9V7h-2v7h6v-2h-4z"/></svg>
-        توليد أكواد
-      </button>
-
-      <button id="btnRefresh" class="btn ghost">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 6V3L8 7l4 4V8a4 4 0 11-4 4H6a6 6 0 106-6z"/></svg>
-        تحديث
-      </button>
-
-      <div id="liveBadge" class="pill" style="margin-inline-start:auto">
-        <span class="spinner"></span>
-        <span>جارِ التحديث...</span>
-      </div>
+      <label>النوع:</label>
+      <select id="genType"><option value="monthly">شهري</option><option value="yearly">سنوي</option></select>
+      <label>العدد:</label>
+      <input id="genCount" type="number" value="5" min="1" max="200"/>
+      <button id="btnGen" class="btn">توليد أكواد</button>
+      <button id="btnRefresh" class="btn ghost">تحديث</button>
+      <button id="btnCopyAll" class="btn ghost">📋 نسخ جميع الأكواد</button>
     </div>
-
-    <details style="margin-top:12px">
-      <summary>استيراد دفعي (سطر لكل كود) — يدعم monthly / yearly</summary>
-      <div class="row" style="margin:10px 0">
-        <select id="impType"><option value="monthly">شهري</option><option value="yearly">سنوي</option></select>
-        <button id="btnImport" class="btn">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zM12 2l5 5h-3v6h-4V7H7l5-5z"/></svg>
-          استيراد
-        </button>
-        <span class="hint">أدخل الأكواد أدناه (حروف/أرقام 8 خانات)</span>
-      </div>
-      <textarea id="bulkBox" rows="4" style="width:100%;resize:vertical" placeholder="RYABC123&#10;RYXYZ789"></textarea>
-    </details>
-
-    <div id="generatedBox" class="card" style="margin-top:12px;display:none">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <strong>أكواد تم توليدها الآن</strong>
-        <button id="btnCopyAll" class="btn ghost">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14h13c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-          نسخ الكل
-        </button>
-      </div>
-      <div id="genList" class="mono" style="margin-top:8px;white-space:pre-wrap"></div>
-    </div>
-
-    <div id="msg" class="muted" style="margin-top:6px"></div>
+    <textarea id="bulkBox" rows="3" style="width:100%;margin-top:8px" placeholder="RYABC123&#10;RYXYZ789"></textarea>
+    <button id="btnImport" class="btn" style="margin-top:8px">استيراد دفعي</button>
+    <div id="msg" style="margin-top:6px;color:var(--muted)"></div>
   </div>
 
-  <div class="split">
-    <div class="card list">
-      <h2>أكواد جديدة</h2>
-      <div id="unused"></div>
+  <div class="card">
+    <h2>أكواد جديدة</h2>
+    <div class="toolbar">
+      <button class="btn ghost" onclick="filterUnused('monthly')">📅 شهري</button>
+      <button class="btn ghost" onclick="filterUnused('yearly')">📆 سنوي</button>
     </div>
-    <div class="card list">
-      <h2>أكواد مستخدمة</h2>
-      <div id="used"></div>
-    </div>
+    <div id="unused"></div>
   </div>
 
-  <div class="card list">
+  <div class="card">
+    <h2>أكواد مستخدمة</h2>
+    <div id="used"></div>
+  </div>
+
+  <div class="card">
     <h2>أكواد منتهية</h2>
     <div id="expired"></div>
   </div>
@@ -168,148 +119,46 @@ const ADMIN_HTML = `<!DOCTYPE html>
 <div id="toast" class="toast"></div>
 
 <script>
-/* ===== Helpers ===== */
 const token = new URLSearchParams(location.search).get("token") || "";
-function api(path, opt={}) {
-  opt.headers = Object.assign({}, opt.headers||{}, {"X-Admin-Token": token, "Content-Type":"application/json"});
-  return fetch(path, opt).then(async r=>{ const j = await r.json().catch(()=>({})); if(!r.ok){throw j.message||"خطأ غير معروف";} return j; });
+function api(path,opt={}){opt.headers=Object.assign({},opt.headers||{},{"X-Admin-Token":token,"Content-Type":"application/json"});return fetch(path,opt).then(r=>r.json());}
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",2000);}
+function fmt(t){return t?new Date(Number(t)).toLocaleString("ar-SA"):"-";}
+
+function status(r){
+  if(!r.usedAt) return '<span class="badge b-new">لم يبدأ بعد</span>';
+  const dur=r.type==="yearly"?365:30;
+  const end=r.usedAt+dur*86400000;
+  if(Date.now()>=end) return '<span class="badge b-exp">منتهي</span>';
+  const left=Math.ceil((end-Date.now())/86400000);
+  return '<span class="badge b-active">نشط • متبقي '+left+' يوم</span>';
 }
-function setMsg(m){document.getElementById('msg').textContent = m||"";}
-function toast(t){const el=document.getElementById('toast'); el.textContent=t; el.style.display='block'; clearTimeout(window.__t); window.__t=setTimeout(()=>el.style.display='none',2200);}
-function fmt(t){ if(!t) return "-"; const d=new Date(Number(t)); return d.toLocaleString("ar-SA"); }
-function daysLeft(row){
-  if(!row.usedAt) return {text:"لم يبدأ بعد", cls:"b-new"};
-  const dur = row.type==="yearly"?365:30;
-  const end = Number(row.usedAt) + dur*86400000;
-  const now = Date.now();
-  if(now>=end) return {text:"منتهي", cls:"b-exp"};
-  const left = Math.ceil((end-now)/86400000);
-  return {text:"نشط • متبقي "+left+" يوم", cls:"b-active"};
-}
-function statusBadge(row){
-  const s = daysLeft(row);
-  return '<span class="badge '+s.cls+'"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>'+s.text+'</span>';
-}
-function emptyBox(txt="لا يوجد بيانات"){ return '<div class="muted">'+txt+'</div>'; }
 
 function tableFor(list){
-  if(!list || !list.length) return emptyBox();
-  let rows = list.map(r=>{
-    const t = r.type==="yearly"?"سنوي":"شهري";
-    return \`
-      <tr>
-        <td class="mono">\${r.code}</td>
-        <td>\${t}</td>
-        <td>\${statusBadge(r)}</td>
-        <td>\${fmt(r.createdAt)}</td>
-        <td>\${r.usedAt?fmt(r.usedAt):"-"}</td>
-        <td class="mono">\${r.deviceId||"-"}</td>
-        <td class="mono">\${r.bundleId||"-"}</td>
-        <td class="actions">
-          <button class="iconbtn" title="نسخ" onclick="copyCode('\${r.code}')">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M16 1H4a2 2 0 00-2 2v12h2V3h12V1zm3 4H8a2 2 0 00-2 2v14h13a2 2 0 002-2V7a2 2 0 00-2-2zm0 16H8V7h11v14z"/></svg>
-          </button>
-          <button class="iconbtn" title="إعادة تعيين" onclick="resetCode('\${r.code}')">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 6V3L8 7l4 4V8a4 4 0 11-4 4H6a6 6 0 106-6z"/></svg>
-          </button>
-          <button class="iconbtn" title="حذف" onclick="delCode('\${r.code}')">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 7h12v2H6zm2 3h8l-1 10H9L8 10zm3-6h2l1 2H10l1-2z"/></svg>
-          </button>
-        </td>
-      </tr>\`;
-  }).join("");
-  return \`
-    <div style="overflow:auto">
-      <table>
-        <thead>
-          <tr>
-            <th>الكود</th>
-            <th>النوع</th>
-            <th>الحالة</th>
-            <th>تم الإنشاء</th>
-            <th>آخر استخدام</th>
-            <th>الجهاز</th>
-            <th>التطبيق</th>
-            <th>إجراءات</th>
-          </tr>
-        </thead>
-        <tbody>\${rows}</tbody>
-      </table>
-    </div>\`;
+  if(!list.length) return "<div class='muted'>لا يوجد</div>";
+  return "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th>إنشاء</th><th>إجراءات</th></tr></thead><tbody>"+
+    list.map(r=>\`<tr>
+      <td>\${r.code}</td>
+      <td>\${r.type==="yearly"?"سنوي":"شهري"}</td>
+      <td>\${status(r)}</td>
+      <td>\${fmt(r.createdAt)}</td>
+      <td class='actions'>
+        <button onclick="copyCode('\${r.code}')">📋</button>
+        <button onclick="resetCode('\${r.code}')">♻️</button>
+        <button onclick="delCode('\${r.code}')">🗑️</button>
+      </td>
+    </tr>\`).join("")+"</tbody></table>";
 }
 
-/* ===== Actions ===== */
-const live = document.getElementById('liveBadge');
-
-function refresh(){
-  live.style.display='inline-flex';
-  api('/api/list').then(j=>{
-    document.getElementById('unused').innerHTML = tableFor(j.unused);
-    document.getElementById('used').innerHTML   = tableFor(j.used);
-    document.getElementById('expired').innerHTML= tableFor(j.expired);
-    setMsg("👌 تم التحديث");
-  }).catch(e=>{
-    setMsg("خطأ: "+e);
-    toast("خطأ أثناء جلب البيانات");
-  }).finally(()=>{ live.style.display='none'; });
-}
-
-function delCode(code){
-  if(!confirm("حذف الكود "+code+" ؟")) return;
-  api('/api/delete',{method:'POST', body:JSON.stringify({code})})
-    .then(_=>{ toast("🗑️ تم الحذف"); refresh(); })
-    .catch(e=>toast("خطأ: "+e));
-}
-
-function resetCode(code){
-  if(!confirm("إعادة تعيين الكود "+code+" (مسح الجهاز المرتبط) ؟")) return;
-  api('/api/reset',{method:'POST', body:JSON.stringify({code})})
-    .then(_=>{ toast("♻️ تم إعادة التعيين"); refresh(); })
-    .catch(e=>toast("خطأ: "+e));
-}
-
-function copyCode(code){
-  navigator.clipboard.writeText(code).then(()=>toast("تم نسخ "+code));
-}
-
-document.getElementById('btnRefresh').onclick = refresh;
-
-document.getElementById('btnGen').onclick = ()=>{
-  const type = document.getElementById('genType').value;
-  const count = Math.max(1, Math.min(200, parseInt(document.getElementById('genCount').value||"1")));
-  live.style.display='inline-flex';
-  api('/api/generate',{method:'POST', body:JSON.stringify({type,count})})
-    .then(j=>{
-      setMsg(j.message||"تم");
-      const list = (j.generated||[]).join("\\n");
-      if(list){
-        document.getElementById('genList').textContent = list;
-        document.getElementById('generatedBox').style.display = 'block';
-      }
-      refresh();
-    })
-    .catch(e=>toast("خطأ: "+e))
-    .finally(()=>{ live.style.display='none'; });
-};
-
-document.getElementById('btnImport').onclick = ()=>{
-  const type = document.getElementById('impType').value;
-  const lines = document.getElementById('bulkBox').value.split(/\\r?\\n/).map(s=>s.trim()).filter(Boolean);
-  if(!lines.length){toast("لا توجد أكواد"); return;}
-  live.style.display='inline-flex';
-  api('/api/bulk_import',{method:'POST', body:JSON.stringify({type,codes:lines})})
-    .then(j=>{ toast(j.message||"تم"); document.getElementById('bulkBox').value=""; refresh(); })
-    .catch(e=>toast("خطأ: "+e))
-    .finally(()=>{ live.style.display='none'; });
-};
-
-document.getElementById('btnCopyAll').onclick = ()=>{
-  const txt = document.getElementById('genList').textContent||"";
-  if(!txt.trim()) return;
-  navigator.clipboard.writeText(txt).then(()=>toast("تم نسخ الأكواد المولدة"));
-};
-
-/* init */
+function refresh(){api("/api/list").then(j=>{window.__all=j;document.getElementById("unused").innerHTML=tableFor(j.unused);document.getElementById("used").innerHTML=tableFor(j.used);document.getElementById("expired").innerHTML=tableFor(j.expired);});}
+function filterUnused(type){const all=window.__all?.unused||[];const filtered=all.filter(r=>r.type===type);document.getElementById("unused").innerHTML=tableFor(filtered);}
+function delCode(code){api("/api/delete",{method:"POST",body:JSON.stringify({code})}).then(()=>{toast("تم الحذف");refresh();});}
+function resetCode(code){api("/api/reset",{method:"POST",body:JSON.stringify({code})}).then(()=>{toast("تم إعادة التعيين");refresh();});}
+function copyCode(code){navigator.clipboard.writeText(code).then(()=>toast("نسخ "+code));}
+document.getElementById("btnGen").onclick=()=>{const type=document.getElementById("genType").value;const count=parseInt(document.getElementById("genCount").value||1);api("/api/generate",{method:"POST",body:JSON.stringify({type,count})}).then(j=>{toast("تم توليد "+(j.generated||[]).length);refresh();});}
+document.getElementById("btnRefresh").onclick=refresh;
+document.getElementById("btnImport").onclick=()=>{const type="monthly";const codes=document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{toast(j.message);refresh();});}
+document.getElementById("btnCopyAll").onclick=()=>{const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];if(!all.length)return toast("لا توجد أكواد");const txt=all.map(r=>\`\${r.code} - \${r.type} - \${r.usedAt?"متبقي "+Math.max(0,Math.ceil(((r.usedAt+(r.type==="yearly"?365:30)*86400000)-Date.now())/86400000))+" يوم":"لم يبدأ"}\`).join("\\n");navigator.clipboard.writeText(txt).then(()=>toast("تم نسخ جميع الأكواد"));};
+function toggleTheme(){const b=document.body;const isLight=b.getAttribute("data-theme")==="light";b.setAttribute("data-theme",isLight?"dark":"light");}
 refresh();
 </script>
 </body>
