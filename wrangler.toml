@@ -13,13 +13,17 @@ compatibility_date = "2025-09-24"
 
 # 🌍 ربط الـ Worker مع دومينك عبر Cloudflare
 routes = [
-    { pattern = "devry7yy.org/api/*", zone_name = "devry7yy.org" }
+    { pattern = "devry7yy.org/api/*", zone_name = "devry7yy.org" },
+    { pattern = "devry7yy.org/admin", zone_name = "devry7yy.org" }
 ]
 
 # 🔧 متغيرات البيئة (Environment Variables)
 [vars]
-# بإمكانك تخليه فاضي إذا بتعتمد فقط على D1
+# رابط احتياطي لو كنت تستخدم JSON قديم (تقدر تخليه فاضي)
 GITHUB_CODES_URL = "https://devry7yy.org/codes.json"
+
+# 🎟️ التوكن الخاص بلوحة الإدارة (حط أي قيمة سرية وقوية من عندك)
+ADMIN_TOKEN = "RY7_SUPER_SECRET_2025_🔥"
 
 # 🗄️ تعريف قاعدة بيانات D1
 [[d1_databases]]
