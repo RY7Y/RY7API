@@ -56,35 +56,119 @@ const ADMIN_HTML = `<!DOCTYPE html>
     --line:#ddd; --brand:#06b6d4; --brand2:#9333ea;
   }
 
-  *{box-sizing:border-box;font-family:'MontserratArabic',sans-serif}
-  body{margin:0;background:var(--bg);color:var(--txt);display:flex;justify-content:center;padding:20px}
-  .wrap{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:20px}
-  header{display:flex;align-items:center;justify-content:center;position:relative}
-  h1{text-align:center;font-size:28px;margin:10px 0;color:var(--brand2)}
-  .theme-toggle{position:absolute;right:0;background:transparent;border:1px solid var(--line);border-radius:50%;padding:8px;cursor:pointer;font-size:18px;color:var(--txt)}
-
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;width:100%;box-shadow:0 2px 12px rgba(0,0,0,.15)}
-
-  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
-  select,input,button,textarea{padding:10px 12px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--txt)}
-  .btn{background:linear-gradient(90deg,var(--brand),var(--brand2));border:none;color:#fff;font-weight:600;cursor:pointer}
-  .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
-
-  table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-  font-size: 12px; /* حجم النص داخل الجدول */
+* {
+  box-sizing: border-box;
+  font-family: 'MontserratArabic', sans-serif;
 }
-th, td {
-  padding: 8px; /* حجم المسافات الداخلية للخلايا */
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--txt);
+  display: flex;
+  justify-content: center;
+  padding: 0; /* ✅ إزالة الهوامش العامة */
+}
+
+.wrap {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+h1 {
+  text-align: center;
+  font-size: 28px;
+  margin: 10px 0;
+  color: var(--brand2);
+}
+
+.theme-toggle {
+  position: absolute;
+  right: 0;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--txt);
+}
+
+/* ✅ تعديل الكروت بحيث الجداول تتمدد بكامل الشاشة */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 0;              /* إلغاء الانحناءات */
+  padding: 0;                    /* إزالة الهوامش الداخلية */
+  margin: 0;                     /* إزالة الهوامش الخارجية */
+  width: 100vw;                  /* عرض كامل الشاشة */
+  box-shadow: none;              /* بدون ظل */
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  padding: 16px; /* ✅ للإبقاء على مسافات جميلة في الأعلى */
+}
+
+select,
+input,
+button,
+textarea {
+  padding: 10px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--txt);
+}
+
+.btn {
+  background: linear-gradient(90deg, var(--brand), var(--brand2));
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--txt);
+  border: 1px solid var(--line);
+}
+
+/* ✅ ضبط الجدول */
+table {
+  width: 100vw;                /* عرض الجدول كامل الشاشة */
+  border-collapse: collapse;
+  margin: 0;                   /* إزالة الفراغات */
+  font-size: 11px;             /* تصغير النص */
+}
+
+th,
+td {
+  padding: 6px;                /* تقليل الفراغات */
   border-bottom: 1px solid var(--line);
   text-align: center;
 }
+
 th {
   color: var(--muted);
   font-weight: 600;
-  font-size: 12px; /* حجم نص العناوين */
+  font-size: 11px;             /* تصغير نص العناوين */
 }
 
   .badge{padding:3px 8px;border-radius:999px;font-size:11px;display:inline-block}
