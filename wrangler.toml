@@ -28,7 +28,7 @@ GITHUB_CODES_URL = "https://devry7yy.org/codes.json"
 
 # 🎟️ التوكن الخاص بلوحة الإدارة
 # لازم تستخدمه في الرابط كـ ?token=... أو بالهيدر X-Admin-Token
-ADMIN_TOKEN = "RY7_SUPER_SECRET_2025"
+ADMIN_TOKEN = "RY7YYAPICODESB"
 
 # 🗄️ تعريف قاعدة بيانات D1
 [[d1_databases]]
