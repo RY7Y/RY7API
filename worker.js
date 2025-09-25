@@ -201,9 +201,9 @@ export default {
         const {code,deviceId,bundleId,deviceName}=await request.json().catch(()=>({}));
         if(!code)return jsonResponse({success:false,message:"⚠️ أرسل الكود"},400);
         const row=await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code=?").bind(code).first();
-        if(!row)return jsonResponse({success:false,message:"🚫 غير موجود"},400);
+        if(!row)return jsonResponse({success:false,message:"تاكد من كتابة الكود الصحيح 🙂"},400);
         const durationDays=row.type==="yearly"?365:30;
-        if(row.deviceId&&row.deviceId!==deviceId)return jsonResponse({success:false,message:"🚫 مستخدم بجهاز آخر"},400);
+        if(row.deviceId&&row.deviceId!==deviceId)return jsonResponse({success:false,message:"تم استخدام الكود بجهاز اخر\nقم بشراء كود جديد 🚫🏃🏻‍♂️"},400);
         if(!row.deviceId){
           await env.RY7_CODES.prepare("UPDATE codes SET deviceId=?,bundleId=?,usedAt=? WHERE code=?").bind(deviceId||"unknown",bundleId||"unknown",Date.now(),code).run();
           await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)").bind(randomCode(8),row.type,Date.now()).run();
