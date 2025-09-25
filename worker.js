@@ -203,7 +203,8 @@ function toggleTheme(){const b=document.body;const isLight=b.getAttribute("data-
 </html>`;
 
 
-// 🔠 مولد الأكواد// ✅ مولد الأكواد (عشوائي فقط)const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+
+const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 function randomCode(len = 8) {
   return Array.from({ length: len }, () => ALPH[Math.floor(Math.random() * ALPH.length)]).join("");
 }
