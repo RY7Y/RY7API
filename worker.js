@@ -283,14 +283,14 @@ function status(r){
   return '<span class="badge b-active">نشط • متبقي '+left+' يوم</span>';
 }
 
-function tableFor(list) {
-  if (!list.length) return "<div style='text-align:center;color:var(--muted)'>لا يوجد</div>";
-  return "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th>الإنشاء</th><th>إجراءات</th></tr></thead><tbody>"+
+function tableFor(list){
+  if(!list.length) return "<div class='muted' style='text-align:center'>لا يوجد</div>";
+  return "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th>إنشاء</th><th>إجراءات</th></tr></thead><tbody>"+
     list.map(r=>\`<tr>
       <td>\${r.code}</td>
       <td>\${r.type==="yearly"?"سنوي":"شهري"}</td>
       <td>\${status(r)}</td>
-      <td style="font-size:10px;color:var(--muted)">\${fmt(r.createdAt)}</td>
+      <td>\${fmt(r.createdAt)}</td>
       <td class='actions'>
         <button class="iconbtn" onclick="copyCode('\${r.code}')" title="نسخ">📋</button>
         <button class="iconbtn" onclick="resetCode('\${r.code}')" title="إعادة">♻️</button>
