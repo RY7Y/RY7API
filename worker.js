@@ -1,23 +1,16 @@
 // worker.js
 // ✅ RY7 Login & Codes Dashboard on Cloudflare Workers + D1
 // --------------------------------------------------------
-// - /api/activate    : تفعيل كود وربطه بجهاز، وتوليد كود بديل تلقائي بنفس النوع
-// - /api/generate    : توليد أكواد (شهري/سنوي) بعدد محدد
-// - /api/list        : جلب القوائم (أكواد جديدة/مستخدمة/منتهية)
-// - /api/delete      : حذف كود
-// - /api/reset       : إعادة تعيين كود (فصل الجهاز عن الكود)
-// - /api/bulk_import : استيراد أكواد يدوية (سطر لكل كود) بنوع محدد
-// - /api/status      : فحص حالة الـ API
-// - /admin           : لوحة إدارة (HTML مضمنة هنا) — تتطلب ADMIN_TOKEN
-//
-// 🔐 كل المسارات الإدارية تحتاج التوكن عبر:
-//   - هيدر:  X-Admin-Token: <ADMIN_TOKEN>
-//   - أو   : /admin?token=<ADMIN_TOKEN>
-//
-// 🗃️ الاعتماد على قاعدة D1 (binding: RY7_CODES)
-// ومتغير البيئة للتوكن:
-// [vars]
-// ADMIN_TOKEN = "RY7YYAPICODESB"
+// - /api/activate         : تفعيل كود وربطه بجهاز، وتوليد كود بديل تلقائي
+// - /api/generate         : توليد أكواد (شهري/سنوي) بعدد محدد
+// - /api/list             : جلب القوائم (أكواد جديدة/مستخدمة/منتهية)
+// - /api/delete           : حذف كود
+// - /api/reset            : إعادة تعيين كود (إلغاء ربطه بالجهاز)
+// - /api/bulk_import      : استيراد أكواد يدوية (سطر لكل كود) بنوع محدد
+// - /admin                : يقدم index.html (لوحة الإدارة)
+// كل مسارات الإدارة تتطلب ADMIN_TOKEN عبر هيدر X-Admin-Token أو query ?token=...
+
+/* ========= مساعدات عامة ========= */
 
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
@@ -30,7 +23,23 @@ function textResponse(html, status = 200) {
   return new Response(html, { status, headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
 
-// ✅ لوحة الأكواد HTML مضمنة مباشرة (بدل admin.html خارجي)
+// حروف توليد الأكواد (بدون O/0 و I/1 لتجنب اللخبطة)
+const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+function randomCode(len = 8) {
+  let s = "";
+  for (let i = 0; i < len; i++) s += ALPH[Math.floor(Math.random() * ALPH.length)];
+  return s;
+}
+
+// التحقق من التوكن الإداري
+function isAdmin(request, env, url) {
+  const q = url.searchParams.get("token");
+  const h = request.headers.get("X-Admin-Token");
+  return !!env.ADMIN_TOKEN && (q === env.ADMIN_TOKEN || h === env.ADMIN_TOKEN);
+}
+
+/* ========= HTML لوحة الإدارة ========= */
+
 const ADMIN_HTML = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -353,22 +362,7 @@ function toggleTheme(){
 </body>
 </html>`;
 
-// 🔠 مولد الأكواد (عشوائي فقط)const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";// 🔠 مولد كود عشوائي// حروف توليد الأكواد (بدون O/0 و I/1 لتجنب اللخبطة)
-const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-function randomCode(len = 8) {
-  let s = "";
-  for (let i = 0; i < len; i++) s += ALPH[Math.floor(Math.random() * ALPH.length)];
-  return s;
-}
-
-// التحقق من التوكن الإداري
-function isAdmin(request, env, url) {
-  const q = url.searchParams.get("token");
-  const h = request.headers.get("X-Admin-Token");
-  return !!env.ADMIN_TOKEN && (q === env.ADMIN_TOKEN || h === env.ADMIN_TOKEN);
-}
-
-*/
+/* ========= منطق قاعدة البيانات ========= */
 
 // ننشئ الجدول إن لم يكن موجوداً
 const CREATE_SQL = `
@@ -401,6 +395,8 @@ function splitLists(rows) {
   return { unused, used, expired };
 }
 
+/* ========= التطبيق الرئيسي ========= */
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -418,7 +414,7 @@ export default {
       // تأكد من وجود الجدول
       await ensureSchema(env);
 
-      // ✅ تفعيل الكود/* ======== تفعيل الكود ======== */
+      /* ======== تفعيل الكود ======== */
       if (path === "/api/activate") {
         if (request.method !== "POST") {
           return jsonResponse({ success:false, message:"🚫 الطريقة غير مسموحة (POST فقط)" }, 405);
