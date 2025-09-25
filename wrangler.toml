@@ -23,7 +23,7 @@ routes = [
 GITHUB_CODES_URL = "https://devry7yy.org/codes.json"
 
 # 🎟️ التوكن الخاص بلوحة الإدارة (حط أي قيمة سرية وقوية من عندك)
-ADMIN_TOKEN = "RY7_SUPER_SECRET_2025_🔥"
+ADMIN_TOKEN = "RY7_SUPER_SECRET_2025"
 
 # 🗄️ تعريف قاعدة بيانات D1
 [[d1_databases]]
