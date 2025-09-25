@@ -1,37 +1,18 @@
-# wrangler.toml
-# 📌 إعداد Cloudflare Worker لمشروع RY7 API
-# ✅ يتكامل مع D1 Database لتخزين الأكواد وإدارتها بشكل دائم
-# ✅ يحتوي على مسارات API + لوحة الأكواد /admin (HTML مدمج داخل worker.js)
-
-# 🏷️ اسم الـ Worker
 name = "ry7api"
 
-# 📂 ملف التشغيل الأساسي
 main = "worker.js"
 
-# 📅 تاريخ التوافق (استخدم تاريخ اليوم لضمان دعم API الحديث)
 compatibility_date = "2025-09-24"
 
-# 🌍 ربط الـ Worker مع دومينك عبر Cloudflare
-routes = [
-    # مسارات الـ API
     { pattern = "devry7yy.org/api/*", zone_name = "devry7yy.org" },
 
-    # لوحة الإدارة (لوحة الأكواد) — تخدم مباشرة من worker.js
     { pattern = "devry7yy.org/admin*", zone_name = "devry7yy.org" }
 ]
 
-# 🔧 متغيرات البيئة (Environment Variables)
-[vars]
-# رابط احتياطي لو كنت تستخدم JSON قديم (ممكن تخليه فاضي الآن لأننا نعتمد على D1)
 GITHUB_CODES_URL = "https://devry7yy.org/codes.json"
 
-# 🎟️ التوكن الخاص بلوحة الإدارة
-# لازم تستخدمه في الرابط كـ ?token=... أو بالهيدر X-Admin-Token
 ADMIN_TOKEN = "RY7YYAPICODESB"
 
-# 🗄️ تعريف قاعدة بيانات D1
-[[d1_databases]]
-binding       = "RY7_CODES"                 # نفس الاسم اللي مستخدم داخل worker.js
-database_name = "ry7-codes"                 # اسم القاعدة (موجود في Cloudflare Dashboard)
-database_id   = "adcd2714-2ed4-4e6d-a326-880b81bf44d4"  # ID من Cloudflare
+binding       = "RY7_CODES"                 
+database_name = "ry7-codes"                 
+database_id   = "adcd2714-2ed4-4e6d-a326-880b81bf44d4"
