@@ -202,13 +202,31 @@ export default {
       }
 
       // قائمة الأكواد
-      if (path === "/api/list" && request.method === "GET") {
-        const res = await env.RY7_CODES
-          .prepare("SELECT * FROM codes ORDER BY createdAt DESC")
-          .all();
-        const { unused, used, expired } = splitLists(res.results || []);
-        return jsonResponse({ success:true, unused, used, expired });
-      }
+if (path === "/api/list" && request.method === "GET") {
+  try {
+    // 📥 استعلام كل الأكواد مرتبة من الأحدث إلى الأقدم
+    const res = await env.RY7_CODES
+      .prepare("SELECT * FROM codes ORDER BY createdAt DESC")
+      .all();
+
+    // 🔎 تقسيمها (غير مستخدمة / مستخدمة / منتهية)
+    const { unused, used, expired } = splitLists(res.results || []);
+
+    // 📤 إرجاع البيانات
+    return jsonResponse({
+      success: true,
+      unused,
+      used,
+      expired
+    });
+  } catch (err) {
+    // ⚠️ أي خطأ داخلي
+    return jsonResponse({
+      success: false,
+      message: "❌ خطأ داخلي أثناء جلب القائمة: " + err.message
+    }, 500);
+  }
+}
 
       // حذف كود
       if (path === "/api/delete" && request.method === "POST") {
