@@ -203,8 +203,7 @@ function toggleTheme(){const b=document.body;const isLight=b.getAttribute("data-
 </html>`;
 
 
-// 🔠 مولد الأكواد// ✅ مولد الأكواد (عشوائي فقط)
-const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+// 🔠 مولد الأكواد// ✅ مولد الأكواد (عشوائي فقط)const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 function randomCode(len = 8) {
   return Array.from({ length: len }, () => ALPH[Math.floor(Math.random() * ALPH.length)]).join("");
 }
@@ -216,6 +215,7 @@ function isAdmin(request, env, url) {
   return !!env.ADMIN_TOKEN && (q === env.ADMIN_TOKEN || h === env.ADMIN_TOKEN);
 }
 
+// ✅ جملة إنشاء الجدول (بدون فاصلة منقوطة زائدة)
 const CREATE_SQL = `
 CREATE TABLE IF NOT EXISTS codes (
   code TEXT PRIMARY KEY,
@@ -224,7 +224,7 @@ CREATE TABLE IF NOT EXISTS codes (
   bundleId TEXT,
   usedAt INTEGER DEFAULT 0,
   createdAt INTEGER DEFAULT 0
-);
+)
 `;
 
 // ✅ التأكد من وجود الجدول (إن لم يكن موجود يتم إنشاؤه)
@@ -262,7 +262,7 @@ export default {
       if (path === "/admin") {
         if (!isAdmin(request, env, url))
           return textResponse("<h3>Unauthorized</h3>", 401);
-        return textResponse(ADMIN_HTML); // HTML يجب أن يكون معرف مسبقًا
+        return textResponse(ADMIN_HTML);
       }
 
       // 🛠️ تأكد من وجود الجدول
