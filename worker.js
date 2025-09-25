@@ -60,13 +60,13 @@ const ADMIN_HTML = `<!DOCTYPE html>
   body{margin:0;background:var(--bg);color:var(--txt);display:flex;justify-content:center;padding:20px}
   .wrap{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:20px}
   header{display:flex;align-items:center;justify-content:center;position:relative}
-  h1{text-align:center;font-size:32px;margin:10px 0;color:var(--brand2)}
+  h1{text-align:center;font-size:28px;margin:10px 0;color:var(--brand2)}
   .theme-toggle{position:absolute;right:0;background:transparent;border:1px solid var(--line);border-radius:50%;padding:8px;cursor:pointer;font-size:18px;color:var(--txt)}
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;width:100%;box-shadow:0 2px 12px rgba(0,0,0,.15)}
 
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
-  select,input,button,textarea{padding:10px 12px;font-size:14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--txt)}
+  select,input,button,textarea{padding:10px 12px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--txt)}
   .btn{background:linear-gradient(90deg,var(--brand),var(--brand2));border:none;color:#fff;font-weight:600;cursor:pointer}
   .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
 
