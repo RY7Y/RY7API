@@ -357,9 +357,14 @@ function toggleTheme(){
 </body>
 </html>`;
 
-// 🔠 مولد الأكواد (عشوائي فقط)const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+// 🔠 مولد الأكواد (عشوائي فقط)const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";// 🔠 مولد كود عشوائي
 function randomCode(len = 8) {
-  return Array.from({ length: len }, () => ALPH[Math.floor(Math.random() * ALPH.length)]).join("");
+  return Array
+    .from({ length: len }, () => {
+      const index = Math.floor(Math.random() * ALPH.length);
+      return ALPH[index];
+    })
+    .join("");
 }
 
 function isAdmin(request, env, url) {
