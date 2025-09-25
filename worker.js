@@ -216,7 +216,7 @@ function isAdmin(request, env, url) {
   return !!env.ADMIN_TOKEN && (q === env.ADMIN_TOKEN || h === env.ADMIN_TOKEN);
 }
 
-const CREATE_SQL = `
+const CREATE_SQL =
 CREATE TABLE IF NOT EXISTS codes (
   code TEXT PRIMARY KEY,
   type TEXT NOT NULL,
