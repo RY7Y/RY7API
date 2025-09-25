@@ -160,15 +160,15 @@ function refresh(){api("/api/list").then(j=>{window.__all=j;
 
 function filterUnused(type){const all=window.__all?.unused||[];document.getElementById("unused").innerHTML=tableFor(all.filter(r=>r.type===type));document.getElementById("countUnused").textContent="الإجمالي: "+all.filter(r=>r.type===type).length;}
 
-function delCode(code){api("/api/delete",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("success","🗑️ تم الحذف");refresh();});}
-function resetCode(code){api("/api/reset",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("info","♻️ تم إعادة التعيين");refresh();});}
+function delCode(code){api("/api/delete",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("success","🗑️ حذف "+code);refresh();});}
+function resetCode(code){api("/api/reset",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("info","♻️ إعادة "+code);refresh();});}
 function copyCode(code){navigator.clipboard.writeText(code).then(()=>alertBox("success","📋 نسخ "+code));}
 
 window.addEventListener("DOMContentLoaded",()=>{
   document.getElementById("btnGen").onclick=()=>{const type=document.getElementById("genType").value;const count=parseInt(document.getElementById("genCount").value||1);api("/api/generate",{method:"POST",body:JSON.stringify({type,count})}).then(j=>{alertBox("success","🎉 تم توليد "+(j.generated||[]).length+" كود");refresh();});};
   document.getElementById("btnRefresh").onclick=()=>{refresh();alertBox("info","🔄 تم التحديث");};
-  document.getElementById("btnImport").onclick=()=>{const type="monthly";const codes=document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{alertBox("warn",j.message);refresh();});};
-  document.getElementById("btnCopyAll").onclick=()=>{const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];if(!all.length)return alertBox("error","⚠️ لا توجد أكواد");const txt=all.map(r=>\`\${r.code} - \${r.type}\`).join("\\n");navigator.clipboard.writeText(txt).then(()=>alertBox("success","📋 تم نسخ جميع الأكواد"));};
+  document.getElementById("btnImport").onclick=()=>{const type=document.getElementById("genType").value;const codes=document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{alertBox("warn",j.message);refresh();});};
+  document.getElementById("btnCopyAll").onclick=()=>{const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];if(!all.length)return alertBox("error","⚠️ لا توجد أكواد");const txt=all.map(r=>r.code).join("\\n");navigator.clipboard.writeText(txt).then(()=>alertBox("success","📋 تم نسخ جميع الأكواد"));};
   refresh();
 });
 
@@ -181,7 +181,9 @@ function toggleTheme(){const b=document.body;const isLight=b.getAttribute("data-
 
 const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 function randomCode(len = 8) {
-  return Array.from({ length: len }, () => ALPH[Math.floor(Math.random() * ALPH.length)]).join("");
+  return Array.from({ length: len }, () =>
+    ALPH[Math.floor(Math.random() * ALPH.length)]
+  ).join("");
 }
 
 function isAdmin(request, env, url) {
@@ -198,7 +200,7 @@ CREATE TABLE IF NOT EXISTS codes (
   bundleId TEXT,
   usedAt INTEGER DEFAULT 0,
   createdAt INTEGER DEFAULT 0
-)
+);
 `;
 
 async function ensureSchema(env) {
@@ -208,7 +210,9 @@ async function ensureSchema(env) {
 function splitLists(rows) {
   const now = Date.now();
   const dur = (t) => (t === "yearly" ? 365 : 30) * 86400000;
-  const unused = [], used = [], expired = [];
+  const unused = [],
+    used = [],
+    expired = [];
 
   for (const r of rows) {
     if (!r.deviceId) {
@@ -228,7 +232,6 @@ export default {
     const path = url.pathname;
 
     try {
-
       if (path === "/admin") {
         if (!isAdmin(request, env, url))
           return textResponse("<h3>Unauthorized</h3>", 401);
@@ -238,24 +241,40 @@ export default {
       await ensureSchema(env);
 
       if (path === "/api/activate" && request.method === "POST") {
-        const { code, deviceId, bundleId, deviceName } = await request.json().catch(() => ({}));
-        if (!code) return jsonResponse({ success: false, message: "⚠️ أرسل الكود" }, 400);
+        const { code, deviceId, bundleId, deviceName } = await request
+          .json()
+          .catch(() => ({}));
+        if (!code)
+          return jsonResponse(
+            { success: false, message: "⚠️ أرسل الكود" },
+            400
+          );
 
-        const row = await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code=?").bind(code).first();
-        if (!row) return jsonResponse({ success: false, message: "🚫 غير موجود" }, 400);
+        const row = await env.RY7_CODES.prepare(
+          "SELECT * FROM codes WHERE code=?"
+        )
+          .bind(code)
+          .first();
+        if (!row)
+          return jsonResponse({ success: false, message: "🚫 غير موجود" }, 400);
 
         const durationDays = row.type === "yearly" ? 365 : 30;
         if (row.deviceId && row.deviceId !== deviceId)
-          return jsonResponse({ success: false, message: "🚫 مستخدم بجهاز آخر" }, 400);
+          return jsonResponse(
+            { success: false, message: "🚫 مستخدم بجهاز آخر" },
+            400
+          );
 
         if (!row.deviceId) {
-          await env.RY7_CODES
-            .prepare("UPDATE codes SET deviceId=?, bundleId=?, usedAt=? WHERE code=?")
+          await env.RY7_CODES.prepare(
+            "UPDATE codes SET deviceId=?, bundleId=?, usedAt=? WHERE code=?"
+          )
             .bind(deviceId || "unknown", bundleId || "unknown", Date.now(), code)
             .run();
 
-          await env.RY7_CODES
-            .prepare("INSERT INTO codes (code, type, createdAt) VALUES (?,?,?)")
+          await env.RY7_CODES.prepare(
+            "INSERT INTO codes (code, type, createdAt) VALUES (?,?,?)"
+          )
             .bind(randomCode(8), row.type, Date.now())
             .run();
         }
@@ -270,49 +289,70 @@ export default {
           success: true,
           type: row.type,
           remainingDays,
-          message: `🎉 تم التفعيل\n📱 ${deviceName || "?"}\n📦 ${bundleId || "?"}\n⏳ ${remainingDays} يوم`,
+          message: `🎉 تم التفعيل\n📱 ${deviceName || "?"}\n📦 ${
+            bundleId || "?"
+          }\n⏳ ${remainingDays} يوم`,
         });
       }
 
-      const adminNeeded = ["/api/generate", "/api/list", "/api/delete", "/api/reset", "/api/bulk_import"];
+      const adminNeeded = [
+        "/api/generate",
+        "/api/list",
+        "/api/delete",
+        "/api/reset",
+        "/api/bulk_import",
+      ];
       if (adminNeeded.includes(path) && !isAdmin(request, env, url))
         return jsonResponse({ success: false, message: "Unauthorized" }, 401);
 
       if (path === "/api/generate" && request.method === "POST") {
         const { type, count } = await request.json().catch(() => ({}));
         if (!["monthly", "yearly"].includes(type))
-          return jsonResponse({ success: false, message: "❌ النوع غير صحيح" }, 400);
+          return jsonResponse(
+            { success: false, message: "❌ النوع غير صحيح" },
+            400
+          );
 
         const n = Math.max(1, Math.min(200, parseInt(count || 1)));
         const out = [];
 
         for (let i = 0; i < n; i++) {
           const c = randomCode(8);
-          await env.RY7_CODES
-            .prepare("INSERT INTO codes (code, type, createdAt) VALUES (?,?,?)")
+          await env.RY7_CODES.prepare(
+            "INSERT INTO codes (code, type, createdAt) VALUES (?,?,?)"
+          )
             .bind(c, type, Date.now())
             .run();
           out.push(c);
         }
-        return jsonResponse({ success: true, generated: out, message: `✅ ${out.length} كود` });
+        return jsonResponse({
+          success: true,
+          generated: out,
+          message: `✅ ${out.length} كود`,
+        });
       }
 
       if (path === "/api/list" && request.method === "GET") {
-        const res = await env.RY7_CODES.prepare("SELECT * FROM codes ORDER BY createdAt DESC").all();
+        const res = await env.RY7_CODES.prepare(
+          "SELECT * FROM codes ORDER BY createdAt DESC"
+        ).all();
         const { unused, used, expired } = splitLists(res.results || []);
         return jsonResponse({ success: true, unused, used, expired });
       }
 
       if (path === "/api/delete" && request.method === "POST") {
         const { code } = await request.json().catch(() => ({}));
-        await env.RY7_CODES.prepare("DELETE FROM codes WHERE code=?").bind(code).run();
+        await env.RY7_CODES.prepare("DELETE FROM codes WHERE code=?")
+          .bind(code)
+          .run();
         return jsonResponse({ success: true, message: "🗑️ حذف " + code });
       }
 
       if (path === "/api/reset" && request.method === "POST") {
         const { code } = await request.json().catch(() => ({}));
-        await env.RY7_CODES
-          .prepare("UPDATE codes SET deviceId=NULL, bundleId=NULL, usedAt=0 WHERE code=?")
+        await env.RY7_CODES.prepare(
+          "UPDATE codes SET deviceId=NULL, bundleId=NULL, usedAt=0 WHERE code=?"
+        )
           .bind(code)
           .run();
         return jsonResponse({ success: true, message: "♻️ إعادة " + code });
@@ -320,14 +360,20 @@ export default {
 
       if (path === "/api/bulk_import" && request.method === "POST") {
         const { type, codes } = await request.json().catch(() => ({}));
-        let ok = 0, dup = 0, bad = 0;
+        let ok = 0,
+          dup = 0,
+          bad = 0;
 
         for (const raw of codes || []) {
           const c = String(raw || "").trim().toUpperCase();
-          if (!/^[A-Z0-9]{8}$/.test(c)) { bad++; continue; }
+          if (!/^[A-Z0-9]{8}$/.test(c)) {
+            bad++;
+            continue;
+          }
           try {
-            await env.RY7_CODES
-              .prepare("INSERT INTO codes (code, type, createdAt) VALUES (?,?,?)")
+            await env.RY7_CODES.prepare(
+              "INSERT INTO codes (code, type, createdAt) VALUES (?,?,?)"
+            )
               .bind(c, type, Date.now())
               .run();
             ok++;
@@ -335,17 +381,25 @@ export default {
             dup++;
           }
         }
-        return jsonResponse({ success: true, message: `✅ ${ok} | مكرر ${dup} | غير صالح ${bad}` });
+        return jsonResponse({
+          success: true,
+          message: `✅ ${ok} | مكرر ${dup} | غير صالح ${bad}`,
+        });
       }
 
       if (path === "/api/status") {
         return jsonResponse({ success: true, message: "✅ API يعمل" });
       }
 
-      return jsonResponse({ success: false, message: "❌ مسار غير موجود" }, 404);
-
+      return jsonResponse(
+        { success: false, message: "❌ مسار غير موجود" },
+        404
+      );
     } catch (err) {
-      return jsonResponse({ success: false, message: "❌ خطأ: " + err.message }, 500);
+      return jsonResponse(
+        { success: false, message: "❌ خطأ: " + err.message },
+        500
+      );
     }
   },
 };
