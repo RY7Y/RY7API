@@ -23,7 +23,7 @@
 //
 // ومتغير البيئة للتوكن:
 // [vars]
-// ADMIN_TOKEN = "RY7_SUPER_SECRET_2025"
+// ADMIN_TOKEN = "RY7YYAPICODESB"
 
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
