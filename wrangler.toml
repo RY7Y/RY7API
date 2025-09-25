@@ -9,7 +9,7 @@ routes = [
 
 [vars]
 GITHUB_CODES_URL = "https://devry7yy.org/codes.json"
-ADMIN_TOKEN = "RY7YYAPICODESB"
+ADMIN_TOKEN = "RY77YAPIBB"
 
 [[d1_databases]]
 binding       = "RY7_CODES"
