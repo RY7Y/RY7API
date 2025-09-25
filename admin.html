@@ -69,7 +69,11 @@
 const token = new URLSearchParams(location.search).get("token") || "";
 function api(path, opt={}) {
   opt.headers = Object.assign({}, opt.headers||{}, {"X-Admin-Token": token, "Content-Type":"application/json"});
-  return fetch(path, opt).then(async r=>{const j=await r.json(); if(!r.ok) throw j; return j;});
+  return fetch(path, opt).then(async r=>{
+    const j=await r.json(); 
+    if(!r.ok) throw j; 
+    return j;
+  });
 }
 function setMsg(m){document.getElementById('msg').textContent=m||"";}
 
