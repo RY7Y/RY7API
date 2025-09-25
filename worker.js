@@ -357,7 +357,7 @@ function toggleTheme(){
 </body>
 </html>`;
 
-// 🔠 مولد الأكوادconst ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";// 🔠 مولد الأكواد// 🔠 مولد الأكواد// 🔠 مولد الأكواد (عشوائي فقط)
+// 🔠 مولد الأكواد (عشوائي فقط)
 const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 function randomCode(len = 8) {
   return Array.from({ length: len }, () => ALPH[Math.floor(Math.random() * ALPH.length)]).join("");
@@ -370,15 +370,17 @@ function isAdmin(request, env, url) {
   return !!env.ADMIN_TOKEN && (q === env.ADMIN_TOKEN || h === env.ADMIN_TOKEN);
 }
 
-// 🗃️ SQL إنشاء الجدول
-const CREATE_SQL = `CREATE TABLE IF NOT EXISTS codes (
+// 🗃️ SQL إنشاء الجدول (إصلاح ✅)
+const CREATE_SQL = `
+CREATE TABLE IF NOT EXISTS codes (
   code TEXT PRIMARY KEY,
   type TEXT NOT NULL,
   deviceId TEXT,
   bundleId TEXT,
   usedAt INTEGER DEFAULT 0,
   createdAt INTEGER DEFAULT 0
-);`;
+);
+`;
 
 async function ensureSchema(env) {
   await env.RY7_CODES.exec(CREATE_SQL);
@@ -401,6 +403,21 @@ function splitLists(rows) {
   return { unused, used, expired };
 }
 
+// ✅ JSON & HTML Response Helpers
+function jsonResponse(obj, status = 200) {
+  return new Response(JSON.stringify(obj, null, 2), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+  });
+}
+
+function textResponse(body, status = 200) {
+  return new Response(body, {
+    status,
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
+}
+
 // ✅ API الرئيسي
 export default {
   async fetch(request, env, ctx) {
@@ -414,6 +431,7 @@ export default {
         return textResponse(ADMIN_HTML);
       }
 
+      // 🛠️ إنشاء الجدول إذا لم يكن موجود
       await ensureSchema(env);
 
       // ✅ تفعيل الكود
@@ -447,7 +465,7 @@ export default {
           success: true,
           type: row.type,
           remainingDays,
-          message: `🎉 تم التفعيل\n📱 ${deviceName || "?"}\n📦 ${bundleId || "?"}\n⏳ ${remainingDays} يوم`
+          message: `🎉 تم التفعيل\n📱 ${deviceName || "?"}\n📦 ${bundleId || "?"}\n⏳ ${remainingDays} يوم`,
         });
       }
 
