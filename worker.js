@@ -19,17 +19,18 @@
 // [vars]
 // ADMIN_TOKEN = "RY7YYAPICODESB"
 
-function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data, null, 2), {
-    status,
-    headers: { "Content-Type": "application/json; charset=utf-8" }
-  });
-}
-
 function textResponse(html, status = 200) {
   return new Response(html, {
     status,
     headers: { "Content-Type": "text/html; charset=utf-8" }
+  });
+}
+
+// ✅ دوال مساعدة
+function jsonResponse(data, status = 200) {
+  return new Response(JSON.stringify(data, null, 2), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8" }
   });
 }
 
@@ -327,7 +328,8 @@ function toggleTheme(){const b=document.body;const isLight=b.getAttribute("data-
 </body>
 </html>`;
 
-// 🔠 مولد الأكوادconst ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+// 🔠 مولد الأكوادconst ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";// 🔠 مولد الأكواد
+const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 function randomCode(len = 8) {
   return Array.from({ length: len }, () => ALPH[Math.floor(Math.random() * ALPH.length)]).join("");
 }
@@ -338,6 +340,7 @@ function isAdmin(request, env, url) {
   return !!env.ADMIN_TOKEN && (q === env.ADMIN_TOKEN || h === env.ADMIN_TOKEN);
 }
 
+// ✅ إنشاء الجدول إذا لم يكن موجود
 const CREATE_SQL = `CREATE TABLE IF NOT EXISTS codes (
   code TEXT PRIMARY KEY,
   type TEXT NOT NULL,
@@ -367,26 +370,14 @@ function splitLists(rows) {
   return { unused, used, expired };
 }
 
-function textResponse(body, status = 200) {
-  return new Response(body, {
-    status,
-    headers: { "Content-Type": "text/html; charset=utf-8" },
-  });
-}
-
-function jsonResponse(obj, status = 200) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
+// ✅ API الرئيسي
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
 
     try {
+      // /admin: واجهة الإدارة
       if (path === "/admin") {
         if (!isAdmin(request, env, url)) return textResponse("<h3>Unauthorized</h3>", 401);
         return textResponse(ADMIN_HTML);
@@ -394,19 +385,21 @@ export default {
 
       await ensureSchema(env);
 
-      // ✅ تفعيل الكود
+      // ✅ تفعيل الكود//
       if (path === "/api/activate" && request.method === "POST") {
         const { code, deviceId, bundleId, deviceName } = await request.json().catch(() => ({}));
         if (!code) return jsonResponse({ success: false, message: "⚠️ أرسل الكود" }, 400);
+
         const row = await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code=?").bind(code).first();
         if (!row) return jsonResponse({ success: false, message: "🚫 غير موجود" }, 400);
+
         const durationDays = row.type === "yearly" ? 365 : 30;
-        if (row.deviceId && row.deviceId !== deviceId) return jsonResponse({ success: false, message: "🚫 مستخدم بجهاز آخر" }, 400);
+        if (row.deviceId && row.deviceId !== deviceId)
+          return jsonResponse({ success: false, message: "🚫 مستخدم بجهاز آخر" }, 400);
+
         if (!row.deviceId) {
           await env.RY7_CODES.prepare("UPDATE codes SET deviceId=?,bundleId=?,usedAt=? WHERE code=?")
             .bind(deviceId || "unknown", bundleId || "unknown", Date.now(), code).run();
-          await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)")
-            .bind(randomCode(8), row.type, Date.now()).run();
         }
         let remainingDays = durationDays;
         if (row.usedAt && row.deviceId === deviceId) {
@@ -420,13 +413,32 @@ export default {
           message: `🎉 تم التفعيل\n📱 ${deviceName || "?"}\n📦 ${bundleId || "?"}\n⏳ ${remainingDays} يوم`
         });
       }
+      
+      // توليد بديل
+          await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)")
+            .bind(randomCode(8), row.type, Date.now()).run();
+        }
+
+        let remainingDays = durationDays;
+        if (row.usedAt && row.deviceId === deviceId) {
+          const elapsed = Math.floor((Date.now() - row.usedAt) / 86400000);
+          remainingDays = Math.max(durationDays - elapsed, 0);
+        }
+
+        return jsonResponse({
+          success: true,
+          type: row.type,
+          remainingDays,
+          message: `🎉 تم التفعيل\n📱 ${deviceName || "?"}\n📦 ${bundleId || "?"}\n⏳ ${remainingDays} يوم`
+        });
+      }
 
       // 🔐 مسارات الإدارة
       const adminNeeded = ["/api/generate", "/api/list", "/api/delete", "/api/reset", "/api/bulk_import"];
       if (adminNeeded.includes(path) && !isAdmin(request, env, url))
         return jsonResponse({ success: false, message: "Unauthorized" }, 401);
 
-      // ✅ توليد الأكواد (مع prefix)
+      // ✅ توليد الأكواد مع دعم prefix
       if (path === "/api/generate" && request.method === "POST") {
         const { type, count, prefix } = await request.json().catch(() => ({}));
         if (!["monthly", "yearly"].includes(type))
@@ -447,18 +459,21 @@ export default {
         return jsonResponse({ success: true, generated: out, message: `✅ ${out.length} كود` });
       }
 
+      // ✅ عرض القائمة
       if (path === "/api/list" && request.method === "GET") {
         const res = await env.RY7_CODES.prepare("SELECT * FROM codes ORDER BY createdAt DESC").all();
         const { unused, used, expired } = splitLists(res.results || []);
         return jsonResponse({ success: true, unused, used, expired });
       }
 
+      // ✅ حذف
       if (path === "/api/delete" && request.method === "POST") {
         const { code } = await request.json().catch(() => ({}));
         await env.RY7_CODES.prepare("DELETE FROM codes WHERE code=?").bind(code).run();
         return jsonResponse({ success: true, message: "🗑️ حذف " + code });
       }
 
+      // ✅ إعادة تعيين
       if (path === "/api/reset" && request.method === "POST") {
         const { code } = await request.json().catch(() => ({}));
         await env.RY7_CODES.prepare("UPDATE codes SET deviceId=NULL,bundleId=NULL,usedAt=0 WHERE code=?")
@@ -466,6 +481,7 @@ export default {
         return jsonResponse({ success: true, message: "♻️ إعادة " + code });
       }
 
+// ✅ استيراد دفعي
       if (path === "/api/bulk_import" && request.method === "POST") {
         const { type, codes } = await request.json().catch(() => ({}));
         let ok = 0, dup = 0, bad = 0;
@@ -481,6 +497,7 @@ export default {
         return jsonResponse({ success: true, message: `✅ ${ok} | مكرر ${dup} | غير صالح ${bad}` });
       }
 
+      // ✅ فحص API
       if (path === "/api/status") {
         return jsonResponse({ success: true, message: "✅ API يعمل" });
       }
