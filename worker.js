@@ -371,17 +371,15 @@ function isAdmin(request, env, url) {
   return !!env.ADMIN_TOKEN && (q === env.ADMIN_TOKEN || h === env.ADMIN_TOKEN);
 }
 
-// 🗃️ SQL إنشاء الجدول (إصلاح ✅)
-const CREATE_SQL = `
-CREATE TABLE IF NOT EXISTS codes (
+// ✅ إنشاء الجدول إذا لم يكن موجود
+const CREATE_SQL = `CREATE TABLE IF NOT EXISTS codes (
   code TEXT PRIMARY KEY,
   type TEXT NOT NULL,
   deviceId TEXT,
   bundleId TEXT,
   usedAt INTEGER DEFAULT 0,
   createdAt INTEGER DEFAULT 0
-);
-`;
+);`;
 
 async function ensureSchema(env) {
   await env.RY7_CODES.exec(CREATE_SQL);
