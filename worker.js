@@ -40,7 +40,7 @@ function isAdmin(request, env, url) {
 
 /* ========= HTML لوحة الإدارة ========= */
 
-const ADMIN_HTML = `<!DOCTYPE html>
+const ADMIN_HTML = `<DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"/>
@@ -55,12 +55,11 @@ const ADMIN_HTML = `<!DOCTYPE html>
   :root {
     --bg:#0b0f17; --card:#101726; --txt:#e6edf3; --muted:#9aa4b2;
     --line:#1e2a3a; --brand:#6ee7ff; --brand2:#8b5cf6;
-    --good:#22c55e; --bad:#ef4444; --warn:#f59e0b; --info:#3b82f6;
+    --good:#22c55e; --bad:#ef4444; --warn:#f59e0b;
   }
   [data-theme="light"] {
     --bg:#f5f5f5; --card:#ffffff; --txt:#222; --muted:#666;
     --line:#ddd; --brand:#06b6d4; --brand2:#9333ea;
-    --good:#16a34a; --bad:#dc2626; --warn:#d97706; --info:#2563eb;
   }
 
 * {
@@ -74,7 +73,7 @@ body {
   color: var(--txt);
   display: flex;
   justify-content: center;
-  padding: 0;
+  padding: 0; /* ✅ إزالة الهوامش العامة */
 }
 
 .wrap {
@@ -111,15 +110,15 @@ h1 {
   color: var(--txt);
 }
 
-/* ✅ الجداول بكامل الشاشة */
+/* ✅ تعديل الكروت بحيث الجداول تتمدد بكامل الشاشة */
 .card {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 0;
-  padding: 0;
-  margin: 0;
-  width: 100vw;
-  box-shadow: none;
+  border-radius: 0;              /* إلغاء الانحناءات */
+  padding: 0;                    /* إزالة الهوامش الداخلية */
+  margin: 0;                     /* إزالة الهوامش الخارجية */
+  width: 100vw;                  /* عرض كامل الشاشة */
+  box-shadow: none;              /* بدون ظل */
 }
 
 .toolbar {
@@ -128,10 +127,13 @@ h1 {
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 16px; /* ✅ للإبقاء على مسافات جميلة في الأعلى */
 }
 
-select,input,button,textarea {
+select,
+input,
+button,
+textarea {
   padding: 10px 12px;
   font-size: 12px;
   border-radius: 8px;
@@ -147,72 +149,50 @@ select,input,button,textarea {
   font-weight: 600;
   cursor: pointer;
 }
+
 .btn.ghost {
   background: transparent;
   color: var(--txt);
   border: 1px solid var(--line);
 }
 
-/* ✅ الجدول */
+/* ✅ ضبط الجدول */
 table {
-  width: 100vw;
+  width: 100vw;                /* عرض الجدول كامل الشاشة */
   border-collapse: collapse;
-  margin: 0;
-  font-size: 11px;
+  margin: 0;                   /* إزالة الفراغات */
+  font-size: 11px;             /* تصغير النص */
 }
-th,td {
-  padding: 6px;
+
+th,
+td {
+  padding: 6px;                /* تقليل الفراغات */
   border-bottom: 1px solid var(--line);
   text-align: center;
 }
+
 th {
   color: var(--muted);
   font-weight: 600;
-  font-size: 11px;
+  font-size: 11px;             /* تصغير نص العناوين */
 }
 
-/* ✅ شارات */
-.badge{padding:3px 8px;border-radius:999px;font-size:11px;display:inline-block}
-.b-new{background:#0b2a1a;color:#22c55e}
-.b-active{background:#071b2a;color:#60d5ff}
-.b-exp{background:#2a0b0e;color:#ef4444}
+  .badge{padding:3px 8px;border-radius:999px;font-size:11px;display:inline-block}
+  .b-new{background:#0b2a1a;color:#22c55e}
+  .b-active{background:#071b2a;color:#60d5ff}
+  .b-exp{background:#2a0b0e;color:#ef4444}
 
-.actions{display:flex;gap:8px;justify-content:center}
-.iconbtn{border:none;background:transparent;cursor:pointer;padding:6px;border-radius:8px;transition:0.2s}
-.iconbtn:hover{background:rgba(255,255,255,0.08)}
-.iconbtn svg{width:18px;height:18px}
+  .actions{display:flex;gap:8px;justify-content:center}
+  .iconbtn{border:none;background:transparent;cursor:pointer;padding:6px;border-radius:8px;transition:0.2s}
+  .iconbtn:hover{background:rgba(255,255,255,0.08)}
+  .iconbtn svg{width:18px;height:18px}
 
-/* ✅ تنبيهات احترافية */
-.alert {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 12px 18px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  box-shadow: 0 4px 20px rgba(0,0,0,.2);
-  animation: fadeIn 0.3s ease;
-  z-index: 9999;
-}
-.alert svg { width:18px;height:18px; }
-.alert.success { background: var(--good); color:#fff; }
-.alert.error   { background: var(--bad); color:#fff; }
-.alert.warn    { background: var(--warn); color:#fff; }
-.alert.info    { background: var(--info); color:#fff; }
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);color:var(--txt);padding:10px 14px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.2);display:none;font-size:14px}
 
-@keyframes fadeIn {
-  from {opacity:0;transform:translate(-50%,20px);}
-  to {opacity:1;transform:translate(-50%,0);}
-}
+  .tabs{display:flex;gap:10px;justify-content:center;margin-bottom:10px}
+  .tabs button{flex:1;max-width:140px}
 
-.tabs{display:flex;gap:10px;justify-content:center;margin-bottom:10px}
-.tabs button{flex:1;max-width:140px}
-.count{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
+  .count{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -228,12 +208,15 @@ th {
       <select id="genType"><option value="monthly">شهري</option><option value="yearly">سنوي</option></select>
       <label>العدد:</label>
       <input id="genCount" type="number" value="5" min="1" max="200"/>
+      <label>بداية الكود:</label>
+      <input id="genPrefix" type="text" maxlength="6" placeholder="مثال: RY7"/>
       <button id="btnGen" class="btn">توليد أكواد</button>
       <button id="btnRefresh" class="btn ghost">تحديث</button>
       <button id="btnCopyAll" class="btn ghost">📋 نسخ جميع الأكواد</button>
     </div>
     <textarea id="bulkBox" rows="3" style="width:100%;margin-top:8px" placeholder="RYABC123&#10;RYXYZ789"></textarea>
     <button id="btnImport" class="btn" style="margin-top:8px">استيراد دفعي</button>
+    <div id="msg" style="margin-top:6px;color:var(--muted)"></div>
   </div>
 
   <div class="card">
@@ -259,24 +242,12 @@ th {
   </div>
 </div>
 
+<div id="toast" class="toast"></div>
+
 <script>
 const token=new URLSearchParams(location.search).get("token")||"";
 function api(path,opt={}){opt.headers=Object.assign({},opt.headers||{},{"X-Admin-Token":token,"Content-Type":"application/json"});return fetch(path,opt).then(r=>r.json());}
-
-// ✅ دالة تنبيه احترافي
-function alertBox(type,msg){
-  const div=document.createElement("div");
-  div.className="alert "+type;
-  let icon="";
-  if(type==="success") icon="✅";
-  if(type==="error") icon="❌";
-  if(type==="warn") icon="⚠️";
-  if(type==="info") icon="ℹ️";
-  div.innerHTML=\`<span>\${icon}</span>\${msg}\`;
-  document.body.appendChild(div);
-  setTimeout(()=>{div.remove();},2500);
-}
-
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",2000);}
 function fmt(t){return t?new Date(Number(t)).toLocaleString("ar-SA"):"-";}
 
 function status(r){
@@ -288,20 +259,43 @@ function status(r){
   return '<span class="badge b-active">نشط • متبقي '+left+' يوم</span>';
 }
 
-function tableFor(list){
-  if(!list.length) return "<div class='muted' style='text-align:center'>لا يوجد</div>";
-  return "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th>إنشاء</th><th>إجراءات</th></tr></thead><tbody>"+
-    list.map(r=>\`<tr>
-      <td>\${r.code}</td>
-      <td>\${r.type==="yearly"?"سنوي":"شهري"}</td>
-      <td>\${status(r)}</td>
-      <td>\${fmt(r.createdAt)}</td>
-      <td class='actions'>
-        <button class="iconbtn" onclick="copyCode('\${r.code}')" title="نسخ">📋</button>
-        <button class="iconbtn" onclick="resetCode('\${r.code}')" title="إعادة">♻️</button>
-        <button class="iconbtn" onclick="delCode('\${r.code}')" title="حذف">🗑️</button>
-      </td>
-    </tr>\`).join("")+"</tbody></table>";
+function tableFor(list) {
+  if (!list.length) {
+    return "<div style='text-align:center;color:var(--muted)'>لا يوجد</div>";
+  }
+
+  let rows = list.map((r) => {
+    const typeLabel = r.type === "yearly" ? "سنوي" : "شهري";
+    const statusLabel = status(r);
+    const createdAt = fmt(r.createdAt);
+
+    return (
+      "<tr>" +
+        "<td>" + r.code + "</td>" +
+        "<td>" + typeLabel + "</td>" +
+        "<td>" + statusLabel + "</td>" +
+        "<td style='font-size:10px;color:var(--muted)'>" + createdAt + "</td>" +
+        "<td class='actions'>" +
+          `<button class="iconbtn" onclick="copyCode('${r.code}')" title="نسخ">📋</button>` +
+          `<button class="iconbtn" onclick="resetCode('${r.code}')" title="إعادة">♻️</button>` +
+          `<button class="iconbtn" onclick="delCode('${r.code}')" title="حذف">🗑️</button>` +
+        "</td>" +
+      "</tr>"
+    );
+  }).join("");
+
+  return (
+    "<table>" +
+      "<thead><tr>" +
+        "<th>الكود</th>" +
+        "<th>النوع</th>" +
+        "<th>الحالة</th>" +
+        "<th style='font-size:10px'>الإنشاء</th>" +
+        "<th>إجراءات</th>" +
+      "</tr></thead>" +
+      "<tbody>" + rows + "</tbody>" +
+    "</table>"
+  );
 }
 
 function refresh(){
@@ -315,49 +309,43 @@ function refresh(){
     document.getElementById("countExpired").textContent="الإجمالي: "+j.expired.length;
   });
 }
-
 function filterUnused(type){
   const all=window.__all?.unused||[];
   document.getElementById("unused").innerHTML=tableFor(all.filter(r=>r.type===type));
   document.getElementById("countUnused").textContent="الإجمالي: "+all.filter(r=>r.type===type).length;
 }
-
-function delCode(code){api("/api/delete",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("success","تم الحذف");refresh();});}
-function resetCode(code){api("/api/reset",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("info","تم إعادة التعيين");refresh();});}
-function copyCode(code){navigator.clipboard.writeText(code).then(()=>alertBox("success","نسخ "+code));}
+function delCode(code){api("/api/delete",{method:"POST",body:JSON.stringify({code})}).then(()=>{toast("تم الحذف");refresh();});}
+function resetCode(code){api("/api/reset",{method:"POST",body:JSON.stringify({code})}).then(()=>{toast("تم إعادة التعيين");refresh();});}
+function copyCode(code){navigator.clipboard.writeText(code).then(()=>toast("نسخ "+code));}
 
 window.addEventListener("DOMContentLoaded",()=>{
   document.getElementById("btnGen").onclick=()=>{
     const type=document.getElementById("genType").value;
     const count=parseInt(document.getElementById("genCount").value||1);
-    api("/api/generate",{method:"POST",body:JSON.stringify({type,count})}).then(j=>{
-      alertBox("success","تم توليد "+(j.generated||[]).length+" كود");
+    const prefix=document.getElementById("genPrefix").value||"";
+    api("/api/generate",{method:"POST",body:JSON.stringify({type,count,prefix})}).then(j=>{
+      toast("تم توليد "+(j.generated||[]).length);
       refresh();
     });
   };
-  document.getElementById("btnRefresh").onclick=()=>{refresh();alertBox("info","تم التحديث");};
+  document.getElementById("btnRefresh").onclick=refresh;
   document.getElementById("btnImport").onclick=()=>{
     const type="monthly";
     const codes=document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);
     api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{
-      alertBox("warn",j.message);
+      toast(j.message);
       refresh();
     });
   };
   document.getElementById("btnCopyAll").onclick=()=>{
     const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];
-    if(!all.length)return alertBox("error","لا توجد أكواد");
+    if(!all.length)return toast("لا توجد أكواد");
     const txt=all.map(r=>\`\${r.code} - \${r.type}\`).join("\\n");
-    navigator.clipboard.writeText(txt).then(()=>alertBox("success","تم نسخ جميع الأكواد"));
+    navigator.clipboard.writeText(txt).then(()=>toast("تم نسخ جميع الأكواد"));
   };
   refresh();
 });
-
-function toggleTheme(){
-  const b=document.body;
-  const isLight=b.getAttribute("data-theme")==="light";
-  b.setAttribute("data-theme",isLight?"dark":"light");
-}
+function toggleTheme(){const b=document.body;const isLight=b.getAttribute("data-theme")==="light";b.setAttribute("data-theme",isLight?"dark":"light");}
 </script>
 </body>
 </html>`;
