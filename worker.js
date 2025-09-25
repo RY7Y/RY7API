@@ -216,15 +216,19 @@ function isAdmin(request, env, url) {
   return !!env.ADMIN_TOKEN && (q === env.ADMIN_TOKEN || h === env.ADMIN_TOKEN);
 }
 
-// ✅ إنشاء الجدول D1const CREATE_SQL = `const CREATE_SQL = `CREATE TABLE IF NOT EXISTS codes (
+// ✅ إنشاء الجدول D1const CREATE_SQL = `const CREATE_SQL = `CREATE TABLE IF NOT EXISTS codes (// ✅ تعريف الجدول
+const CREATE_SQL = `
+CREATE TABLE IF NOT EXISTS codes (
   code TEXT PRIMARY KEY,
   type TEXT NOT NULL,
   deviceId TEXT,
   bundleId TEXT,
   usedAt INTEGER DEFAULT 0,
   createdAt INTEGER DEFAULT 0
-);`;
+);
+`;
 
+// ✅ التأكد من وجود الجدول (إن لم يكن موجود يتم إنشاؤه)
 async function ensureSchema(env) {
   await env.RY7_CODES.exec(CREATE_SQL);
 }
