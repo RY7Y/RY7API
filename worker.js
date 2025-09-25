@@ -592,16 +592,9 @@ export default {
         return jsonResponse({ success: true, message: "✅ API يعمل" });
       }
 
-      // ❌ مسار غير موجود
-      return jsonResponse(
-        { success: false, message: "❌ مسار غير موجود" },
-        404
-      );
+      return jsonResponse({ success: false, message: "❌ مسار غير موجود" }, 404);
     } catch (err) {
-      return jsonResponse(
-        { success: false, message: "❌ خطأ: " + err.message },
-        500
-      );
+      return jsonResponse({ success: false, message: "❌ خطأ: " + err.message }, 500);
     }
-  },
+  }
 };
