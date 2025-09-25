@@ -261,9 +261,7 @@ function api(path, opt={}) {
 function fmt(t) {
   return t ? new Date(Number(t)).toLocaleString("ar-SA") : "-";
 }
-function toast(msg) {
-  alert(msg);
-}
+function toast(msg) { alert(msg); }
 function status(r) {
   if (!r.usedAt) return '<span class="badge b-new">لم يبدأ بعد</span>';
   const dur = r.type === "yearly" ? 365 : 30;
@@ -276,12 +274,10 @@ function tableFor(list) {
   if (!list.length) {
     return "<div style='text-align:center;color:var(--muted)'>لا يوجد</div>";
   }
-
   let rows = list.map((r) => {
     const typeLabel = r.type === "yearly" ? "سنوي" : "شهري";
     const statusLabel = status(r);
     const createdAt = fmt(r.createdAt);
-
     return (
       "<tr>" +
         "<td>" + r.code + "</td>" +
@@ -289,68 +285,63 @@ function tableFor(list) {
         "<td>" + statusLabel + "</td>" +
         "<td style='font-size:10px;color:var(--muted)'>" + createdAt + "</td>" +
         "<td class='actions'>" +
-          `<button class="iconbtn" onclick="copyCode('${r.code}')" title="نسخ">📋</button>` +
-          `<button class="iconbtn" onclick="resetCode('${r.code}')" title="إعادة">♻️</button>` +
-          `<button class="iconbtn" onclick="delCode('${r.code}')" title="حذف">🗑️</button>` +
+          "<button class='iconbtn' onclick=\"copyCode('" + r.code + "')\">📋</button>" +
+          "<button class='iconbtn' onclick=\"resetCode('" + r.code + "')\">♻️</button>" +
+          "<button class='iconbtn' onclick=\"delCode('" + r.code + "')\">🗑️</button>" +
         "</td>" +
       "</tr>"
     );
   }).join("");
-
   return (
     "<table>" +
       "<thead><tr>" +
-        "<th>الكود</th>" +
-        "<th>النوع</th>" +
-        "<th>الحالة</th>" +
-        "<th style='font-size:10px'>الإنشاء</th>" +
-        "<th>إجراءات</th>" +
+        "<th>الكود</th><th>النوع</th><th>الحالة</th><th style='font-size:10px'>الإنشاء</th><th>إجراءات</th>" +
       "</tr></thead>" +
-      "<tbody>" + rows + "</tbody>" +
-    "</table>"
+      "<tbody>" + rows + "</tbody></table>"
   );
 }
-
 function filterUnused(type) {
   const all = window.__all?.unused || [];
-  const filtered = all.filter(r => r.type === type);
-  document.getElementById("unused").innerHTML = tableFor(filtered);
+  document.getElementById("unused").innerHTML = tableFor(all.filter(r => r.type === type));
 }
-function copyCode(code) {
-  navigator.clipboard.writeText(code).then(() => toast("تم نسخ الكود"));
-}
-function resetCode(code) {
-  api("/api/reset", { method: "POST", body: JSON.stringify({ code }) }).then(() => refresh());
-}
-function delCode(code) {
-  api("/api/delete", { method: "POST", body: JSON.stringify({ code }) }).then(() => refresh());
-}
+function copyCode(code) { navigator.clipboard.writeText(code).then(() => toast("تم نسخ الكود")); }
+function resetCode(code) { api("/api/reset", { method:"POST", body: JSON.stringify({ code }) }).then(() => refresh()); }
+function delCode(code) { api("/api/delete", { method:"POST", body: JSON.stringify({ code }) }).then(() => refresh()); }
 document.getElementById("btnGen").onclick = () => {
   const type = document.getElementById("genType").value;
   const count = parseInt(document.getElementById("genCount").value || 1);
   const prefix = document.getElementById("genPrefix").value || "";
-  api("/api/generate", { method: "POST", body: JSON.stringify({ type, count, prefix }) }).then(() => refresh());
+  api("/api/generate", { method:"POST", body: JSON.stringify({ type, count, prefix }) }).then(() => refresh());
 };
 document.getElementById("btnImport").onclick = () => {
-  const codes = document.getElementById("bulkBox").value.split(/\r?\n/).filter(Boolean);
+  const codes = document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);
   const type = document.getElementById("genType").value;
-  api("/api/bulk_import", { method: "POST", body: JSON.stringify({ type, codes }) }).then(() => refresh());
+  api("/api/bulk_import", { method:"POST", body: JSON.stringify({ type, codes }) }).then(() => refresh());
 };
 document.getElementById("btnRefresh").onclick = refresh;
 document.getElementById("btnCopyAll").onclick = () => {
   const all = [...(window.__all?.unused||[]), ...(window.__all?.used||[]), ...(window.__all?.expired||[])];
-  const txt = all.map(r => r.code).join("\n");
-  navigator.clipboard.writeText(txt).then(() => toast("تم نسخ جميع الأكواد"));
+  navigator.clipboard.writeText(all.map(r => r.code).join("\\n")).then(() => toast("تم نسخ جميع الأكواد"));
 };
 function toggleTheme() {
   const b = document.body;
-  const isLight = b.getAttribute("data-theme") === "light";
-  b.setAttribute("data-theme", isLight ? "dark" : "light");
+  b.setAttribute("data-theme", b.getAttribute("data-theme") === "light" ? "dark" : "light");
+}
+function refresh() {
+  api("/api/list").then(j => {
+    window.__all = j;
+    document.getElementById("unused").innerHTML = tableFor(j.unused);
+    document.getElementById("used").innerHTML = tableFor(j.used);
+    document.getElementById("expired").innerHTML = tableFor(j.expired);
+    document.getElementById("countUnused").textContent = "الإجمالي: " + j.unused.length;
+    document.getElementById("countUsed").textContent = "الإجمالي: " + j.used.length;
+    document.getElementById("countExpired").textContent = "الإجمالي: " + j.expired.length;
+  });
 }
 refresh();
 </script>
 </body>
-</html>
+</html>`;
 
 
 // 🔠 مولد الأكواد
