@@ -8,7 +8,7 @@
 // - /api/reset       : إعادة تعيين كود (فصل الجهاز عن الكود)
 // - /api/bulk_import : استيراد أكواد يدوية (سطر لكل كود) بنوع محدد
 // - /api/status      : فحص حالة الـ API
-// - /admin           : لوحة إدارة (HTML) — تتطلب ADMIN_TOKEN
+// - /admin           : لوحة إدارة (HTML من admin.html) — تتطلب ADMIN_TOKEN
 //
 // 🔐 كل المسارات الإدارية تحتاج التوكن عبر:
 //   - هيدر:  X-Admin-Token: <ADMIN_TOKEN>
@@ -39,7 +39,13 @@ function textResponse(html, status = 200) {
   });
 }
 
-// حروف توليد الأكواد (بدون O/0 و I/1 لتجنب اللخبطة)
+// 🆕 قراءة admin.html من الـ Assets
+async function getAdminHTML(env) {
+  const r = await env.ASSETS.fetch("http://internal/admin.html");
+  return await r.text();
+}
+
+// 🔠 حروف توليد الأكواد (بدون O/0 و I/1 لتجنب اللخبطة)
 const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 function randomCode(len = 8) {
   let s = "";
@@ -52,161 +58,6 @@ function isAdmin(request, env, url) {
   const h = request.headers.get("X-Admin-Token");
   return !!env.ADMIN_TOKEN && (q === env.ADMIN_TOKEN || h === env.ADMIN_TOKEN);
 }
-
-/* =========== HTML (لوحة الإدارة) =========== */
-
-const ADMIN_HTML = `<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>لوحة أكواد RY7</title>
-<style>
-  body{font-family:-apple-system,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#0b0f17;color:#e6edf3;margin:0;padding:16px}
-  h1,h2{margin:8px 0}
-  .wrap{max-width:980px;margin:0 auto}
-  .card{background:#111827;border:1px solid #223; border-radius:12px; padding:16px; margin:12px 0}
-  input,select,button,textarea{font-size:16px;padding:10px;border-radius:8px;border:1px solid #334;background:#0d1320;color:#e6edf3}
-  button{cursor:pointer}
-  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  table{width:100%;border-collapse:collapse;margin-top:12px}
-  th,td{border-bottom:1px solid #223;padding:8px;text-align:right}
-  .tag{padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid #334}
-  .ok{color:#16a34a;border-color:#14532d;background:#052e12}
-  .bad{color:#ef4444;border-color:#3f0d12;background:#2a0b0e}
-  .muted{color:#9aa4b2}
-  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace}
-  .actions button{margin-inline-start:6px}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <h1>لوحة أكواد RY7</h1>
-  <div class="card">
-    <div class="row">
-      <label>النوع:</label>
-      <select id="genType">
-        <option value="monthly">شهري (30 يوم)</option>
-        <option value="yearly">سنوي (365 يوم)</option>
-      </select>
-      <label>العدد:</label>
-      <input id="genCount" type="number" value="5" min="1" max="200"/>
-      <button id="btnGen">توليد أكواد</button>
-      <button id="btnRefresh">تحديث القوائم</button>
-    </div>
-    <div style="margin-top:10px" class="row">
-      <label>استيراد دفعي (سطر لكل كود):</label>
-      <select id="impType">
-        <option value="monthly">شهري</option>
-        <option value="yearly">سنوي</option>
-      </select>
-      <button id="btnImport">استيراد</button>
-    </div>
-    <textarea id="bulkBox" rows="4" style="width:100%;margin-top:8px" placeholder="RYABC123&#10;RYXYZ789"></textarea>
-    <div id="msg" class="muted" style="margin-top:8px"></div>
-  </div>
-
-  <div class="card">
-    <h2>أكواد جديدة / غير مستخدمة</h2>
-    <div id="unused"></div>
-  </div>
-
-  <div class="card">
-    <h2>أكواد مستخدمة</h2>
-    <div id="used"></div>
-  </div>
-
-  <div class="card">
-    <h2>أكواد منتهية</h2>
-    <div id="expired"></div>
-  </div>
-</div>
-
-<script>
-const token = new URLSearchParams(location.search).get("token") || "";
-function api(path, opt={}) {
-  opt.headers = Object.assign({}, opt.headers||{}, {"X-Admin-Token": token, "Content-Type":"application/json"});
-  return fetch(path, opt).then(async r=>{const j=await r.json(); if(!r.ok) throw j; return j;});
-}
-function setMsg(m){document.getElementById('msg').textContent=m||"";}
-
-function tableFor(list){
-  if(!list || !list.length) return "<div class='muted'>لا يوجد بيانات</div>";
-  let rows = list.map(r=>{
-    const t = r.type==="yearly"?"سنوي":"شهري";
-    const ua = r.usedAt ? new Date(r.usedAt).toLocaleString("ar-SA") : "-";
-    return \`
-      <tr>
-        <td class="mono">\${r.code}</td>
-        <td>\${t}</td>
-        <td>\${r.deviceId||"-"}</td>
-        <td>\${r.bundleId||"-"}</td>
-        <td>\${ua}</td>
-        <td class="actions">
-          <button onclick="delCode('\${r.code}')">حذف</button>
-          <button onclick="resetCode('\${r.code}')">إعادة تعيين</button>
-          <button onclick="copyCode('\${r.code}')">نسخ</button>
-        </td>
-      </tr>\`;
-  }).join("");
-  return \`
-    <table>
-      <thead>
-        <tr><th>الكود</th><th>النوع</th><th>الجهاز</th><th>التطبيق</th><th>آخر استخدام</th><th>إجراءات</th></tr>
-      </thead>
-      <tbody>\${rows}</tbody>
-    </table>\`;
-}
-
-function refresh(){
-  api('/api/list').then(j=>{
-    document.getElementById('unused').innerHTML = tableFor(j.unused);
-    document.getElementById('used').innerHTML   = tableFor(j.used);
-    document.getElementById('expired').innerHTML= tableFor(j.expired);
-    setMsg("👌 تم التحديث");
-  }).catch(e=>setMsg("خطأ: "+(e.message||"")));
-}
-
-function delCode(code){
-  if(!confirm("حذف الكود "+code+" ؟")) return;
-  api('/api/delete',{method:'POST', body:JSON.stringify({code})})
-    .then(_=>{ setMsg("🗑️ تم الحذف"); refresh(); })
-    .catch(e=>setMsg("خطأ: "+(e.message||"")));
-}
-
-function resetCode(code){
-  if(!confirm("إعادة تعيين الكود "+code+" (مسح الجهاز المرتبط) ؟")) return;
-  api('/api/reset',{method:'POST', body:JSON.stringify({code})})
-    .then(_=>{ setMsg("♻️ تم إعادة التعيين"); refresh(); })
-    .catch(e=>setMsg("خطأ: "+(e.message||"")));
-}
-
-function copyCode(code){
-  navigator.clipboard.writeText(code);
-  setMsg("تم نسخ "+code);
-}
-
-document.getElementById('btnRefresh').onclick = refresh;
-document.getElementById('btnGen').onclick = ()=>{
-  const type = document.getElementById('genType').value;
-  const count = Math.max(1, Math.min(200, parseInt(document.getElementById('genCount').value||"1")));
-  api('/api/generate',{method:'POST', body:JSON.stringify({type,count})})
-    .then(j=>{ setMsg(j.message||"تم"); refresh(); })
-    .catch(e=>setMsg("خطأ: "+(e.message||"")));
-};
-
-document.getElementById('btnImport').onclick = ()=>{
-  const type = document.getElementById('impType').value;
-  const lines = document.getElementById('bulkBox').value.split(/\\r?\\n/).map(s=>s.trim()).filter(Boolean);
-  if(!lines.length){setMsg("لا توجد أكواد"); return;}
-  api('/api/bulk_import',{method:'POST', body:JSON.stringify({type,codes:lines})})
-    .then(j=>{ setMsg(j.message||"تم"); refresh(); })
-    .catch(e=>setMsg("خطأ: "+(e.message||"")));
-};
-
-refresh();
-</script>
-</body></html>`;
 
 /* =========== قاعدة البيانات (D1) =========== */
 
@@ -247,12 +98,13 @@ export default {
     const path = url.pathname;
 
     try {
-      // ⭐ لوحة الإدارة (HTML)
+      // ⭐ لوحة الإدارة (HTML من admin.html)
       if (path === "/admin") {
         if (!isAdmin(request, env, url)) {
           return textResponse("<h3 style='font-family:sans-serif'>Unauthorized</h3>", 401);
         }
-        return textResponse(ADMIN_HTML);
+        const html = await getAdminHTML(env);
+        return textResponse(html);
       }
 
       // تأكد من جاهزية الجدول
