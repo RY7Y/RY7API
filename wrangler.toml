@@ -1,18 +1,17 @@
 name = "ry7api"
-
 main = "worker.js"
-
 compatibility_date = "2025-09-24"
 
+routes = [
     { pattern = "devry7yy.org/api/*", zone_name = "devry7yy.org" },
-
     { pattern = "devry7yy.org/admin*", zone_name = "devry7yy.org" }
 ]
 
+[vars]
 GITHUB_CODES_URL = "https://devry7yy.org/codes.json"
-
 ADMIN_TOKEN = "RY7YYAPICODESB"
 
-binding       = "RY7_CODES"                 
-database_name = "ry7-codes"                 
+[[d1_databases]]
+binding       = "RY7_CODES"
+database_name = "ry7-codes"
 database_id   = "adcd2714-2ed4-4e6d-a326-880b81bf44d4"
