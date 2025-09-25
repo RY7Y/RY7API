@@ -70,9 +70,22 @@ const ADMIN_HTML = `<!DOCTYPE html>
   .btn{background:linear-gradient(90deg,var(--brand),var(--brand2));border:none;color:#fff;font-weight:600;cursor:pointer}
   .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
 
-  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}
-  th,td{padding:8px;border-bottom:1px solid var(--line);text-align:center}
-  th{color:var(--muted);font-weight:600;font-size:12px}
+  table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 12px; /* حجم النص داخل الجدول */
+}
+th, td {
+  padding: 8px; /* حجم المسافات الداخلية للخلايا */
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+}
+th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 12px; /* حجم نص العناوين */
+}
 
   .badge{padding:3px 8px;border-radius:999px;font-size:11px;display:inline-block}
   .b-new{background:#0b2a1a;color:#22c55e}
