@@ -1,16 +1,23 @@
 // worker.js
 // ✅ RY7 Login & Codes Dashboard on Cloudflare Workers + D1
 // --------------------------------------------------------
-// - /api/activate         : تفعيل كود وربطه بجهاز، وتوليد كود بديل تلقائي
-// - /api/generate         : توليد أكواد (شهري/سنوي) بعدد محدد
-// - /api/list             : جلب القوائم (أكواد جديدة/مستخدمة/منتهية)
-// - /api/delete           : حذف كود
-// - /api/reset            : إعادة تعيين كود (إلغاء ربطه بالجهاز)
-// - /api/bulk_import      : استيراد أكواد يدوية (سطر لكل كود) بنوع محدد
-// - /admin                : يقدم index.html (لوحة الإدارة)
-// كل مسارات الإدارة تتطلب ADMIN_TOKEN عبر هيدر X-Admin-Token أو query ?token=...
-
-/* ========= مساعدات عامة ========= */
+// - /api/activate    : تفعيل كود وربطه بجهاز، وتوليد كود بديل تلقائي بنفس النوع
+// - /api/generate    : توليد أكواد (شهري/سنوي) بعدد محدد
+// - /api/list        : جلب القوائم (أكواد جديدة/مستخدمة/منتهية)
+// - /api/delete      : حذف كود
+// - /api/reset       : إعادة تعيين كود (فصل الجهاز عن الكود)
+// - /api/bulk_import : استيراد أكواد يدوية (سطر لكل كود) بنوع محدد
+// - /api/status      : فحص حالة الـ API
+// - /admin           : لوحة إدارة (HTML مضمنة هنا) — تتطلب ADMIN_TOKEN
+//
+// 🔐 كل المسارات الإدارية تحتاج التوكن عبر:
+//   - هيدر:  X-Admin-Token: <ADMIN_TOKEN>
+//   - أو   : /admin?token=<ADMIN_TOKEN>
+//
+// 🗃️ الاعتماد على قاعدة D1 (binding: RY7_CODES)
+// ومتغير البيئة للتوكن:
+// [vars]
+// ADMIN_TOKEN = "RY7YYAPICODESB"
 
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
@@ -26,27 +33,8 @@ function textResponse(html, status = 200) {
   });
 }
 
-// حروف توليد الأكواد (بدون O/0 و I/1 لتجنب اللخبطة)
-// 🔠 مولد الأكواد
-const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-function randomCode(len=8){return Array.from({length:len},()=>ALPH[Math.floor(Math.random()*ALPH.length)]).join("");}
-
-function isAdmin(request,env,url){const q=url.searchParams.get("token");const h=request.headers.get("X-Admin-Token");return !!env.ADMIN_TOKEN&&(q===env.ADMIN_TOKEN||h===env.ADMIN_TOKEN);}
-
-const CREATE_SQL=`CREATE TABLE IF NOT EXISTS codes (code TEXT PRIMARY KEY,type TEXT NOT NULL,deviceId TEXT,bundleId TEXT,usedAt INTEGER DEFAULT 0,createdAt INTEGER DEFAULT 0);`;
-async function ensureSchema(env){await env.RY7_CODES.exec(CREATE_SQL);}
-function splitLists(rows){const now=Date.now();const dur=(t)=>(t==="yearly"?365:30)*86400000;const unused=[],used=[],expired=[];for(const r of rows){if(!r.deviceId){unused.push(r);continue;}const end=(r.usedAt||0)+dur(r.type);if(now>=end)expired.push(r);else used.push(r);}return{unused,used,expired};}
-
-export default {
-  async fetch(request,env,ctx){
-    const url=new URL(request.url);const path=url.pathname;
-    try{
-      if(path==="/admin"){if(!isAdmin(request,env,url))return textResponse("<h3>Unauthorized</h3>",401);return textResponse(ADMIN_HTML);}
-      await ensureSchema(env);
-
-/* ========= HTML لوحة الإدارة ========= */
-
-const ADMIN_HTML = `<DOCTYPE html>
+// ✅ لوحة الأكواد HTML مضمنة مباشرة (بدل admin.html خارجي)
+const ADMIN_HTML = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"/>
@@ -356,46 +344,25 @@ function toggleTheme(){const b=document.body;const isLight=b.getAttribute("data-
 </body>
 </html>`;
 
-/* ========= منطق قاعدة البيانات ========= */
 
-CREATE TABLE IF NOT EXISTS codes (
-  code TEXT PRIMARY KEY,
-  type TEXT NOT NULL,
-  deviceId TEXT,
-  bundleId TEXT,
-  usedAt INTEGER DEFAULT 0,
-  createdAt INTEGER DEFAULT 0
-);
+// 🔠 مولد الأكواد
+const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+function randomCode(len=8){return Array.from({length:len},()=>ALPH[Math.floor(Math.random()*ALPH.length)]).join("");}
 
-async function ensureSchema(env) {
-  await env.RY7_CODES.exec(CREATE_SQL);
-}
+function isAdmin(request,env,url){const q=url.searchParams.get("token");const h=request.headers.get("X-Admin-Token");return !!env.ADMIN_TOKEN&&(q===env.ADMIN_TOKEN||h===env.ADMIN_TOKEN);}
 
-// تصنيف القوائم
-function splitLists(rows) {
-  const now = Date.now();
-  const dur = t => (t === "yearly" ? 365 : 30) * 24 * 60 * 60 * 1000;
-  const unused = [];
-  const used = [];
-  const expired = [];
-  for (const r of rows) {
-    if (!r.deviceId) { unused.push(r); continue; }
-    const end = (r.usedAt||0) + dur(r.type);
-    if (now >= end) expired.push(r); else used.push(r);
-  }
-  return { unused, used, expired };
-}
-
-/* ========= التطبيق الرئيسي ========= */
+const CREATE_SQL=`CREATE TABLE IF NOT EXISTS codes (code TEXT PRIMARY KEY,type TEXT NOT NULL,deviceId TEXT,bundleId TEXT,usedAt INTEGER DEFAULT 0,createdAt INTEGER DEFAULT 0);`;
+async function ensureSchema(env){await env.RY7_CODES.exec(CREATE_SQL);}
+function splitLists(rows){const now=Date.now();const dur=(t)=>(t==="yearly"?365:30)*86400000;const unused=[],used=[],expired=[];for(const r of rows){if(!r.deviceId){unused.push(r);continue;}const end=(r.usedAt||0)+dur(r.type);if(now>=end)expired.push(r);else used.push(r);}return{unused,used,expired};}
 
 export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-    const path = url.pathname;
+  async fetch(request,env,ctx){
+    const url=new URL(request.url);const path=url.pathname;
+    try{
+      if(path==="/admin"){if(!isAdmin(request,env,url))return textResponse("<h3>Unauthorized</h3>",401);return textResponse(ADMIN_HTML);}
+      await ensureSchema(env);
 
-    try {
-
-      /* ======== تفعيل الكود ======== */// ✅ تفعيل الكود
+      // ✅ تفعيل الكود
       if(path==="/api/activate"&&request.method==="POST"){
         const {code,deviceId,bundleId,deviceName}=await request.json().catch(()=>({}));
         if(!code)return jsonResponse({success:false,message:"⚠️ أرسل الكود"},400);
@@ -415,7 +382,7 @@ export default {
         return jsonResponse({success:true,type:row.type,remainingDays,message:`🎉 تم التفعيل\n📱 ${deviceName||"?"}\n📦 ${bundleId||"?"}\n⏳ ${remainingDays} يوم`});
       }
 
-        // مدة النوع 🔐 مسارات الإدارة
+      // 🔐 مسارات الإدارة
       const adminNeeded=["/api/generate","/api/list","/api/delete","/api/reset","/api/bulk_import"];
       if(adminNeeded.includes(path)&&!isAdmin(request,env,url))return jsonResponse({success:false,message:"Unauthorized"},401);
 
@@ -460,13 +427,5 @@ export default {
       if(path==="/api/status"){return jsonResponse({success:true,message:"✅ API يعمل"});}
       return jsonResponse({success:false,message:"❌ مسار غير موجود"},404);
     }catch(err){return jsonResponse({success:false,message:"❌ خطأ: "+err.message},500);}
-  }
-
-      // غير موجود
-      return jsonResponse({ success:false, message:"❌ مسار غير موجود" }, 404);
-
-    } catch (err) {
-      return jsonResponse({ success:false, message:"❌ خطأ داخلي: " + err.message }, 500);
-    }
   }
 };
