@@ -18,7 +18,7 @@ routes = [
     { pattern = "devry7yy.org/api/*", zone_name = "devry7yy.org" },
 
     # لوحة الإدارة (لوحة الأكواد)
-    { pattern = "devry7yy.org/admin", zone_name = "devry7yy.org" }
+    { pattern = "devry7yy.org/admin*", zone_name = "devry7yy.org" }
 ]
 
 # 🔧 متغيرات البيئة (Environment Variables)
