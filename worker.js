@@ -37,289 +37,303 @@ function textResponse(html, status = 200) {
 const ADMIN_HTML = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>RY7Code New</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>لوحة الأكواد — RY7Code</title>
+
 <style>
   @font-face {
     font-family: 'MontserratArabic';
     src: url('Montserrat-Arabic-Regular.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
   }
 
   :root {
-    --bg:#0b0f17; --card:#101726; --txt:#e6edf3; --muted:#9aa4b2;
-    --line:#1e2a3a; --brand:#6ee7ff; --brand2:#8b5cf6;
-    --good:#22c55e; --bad:#ef4444; --warn:#f59e0b;
-  }
-  [data-theme="light"] {
-    --bg:#f5f5f5; --card:#ffffff; --txt:#222; --muted:#666;
-    --line:#ddd; --brand:#06b6d4; --brand2:#9333ea;
+    --bg: #0b0f17; --card: #101726; --txt: #e6edf3;
+    --muted: #9aa4b2; --line: #1e2a3a; --brand: #6ee7ff;
+    --brand2: #8b5cf6; --good: #22c55e; --bad: #ef4444; --warn: #f59e0b;
   }
 
-  * {
-    box-sizing:border-box;
-    font-family:'MontserratArabic', sans-serif;
-  }
   body {
-    margin:0;
-    background:var(--bg);
-    color:var(--txt);
-    padding:0;
+    font-family: 'MontserratArabic', sans-serif;
+    background: var(--bg);
+    color: var(--txt);
+    margin: 0; padding: 0;
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
-    display:flex;
-    flex-direction:column;
   }
 
   .wrap {
-    width:100%;
-    padding:16px;
-    display:flex;
-    flex-direction:column;
-    gap:20px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
     flex: 1;
   }
 
-  header {
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    position:relative;
-    padding:8px 0;
-  }
-
-  h1 {
-    text-align:center;
-    font-size:32px;
-    margin:10px 0;
-    color:var(--brand2);
-  }
-
-  .theme-toggle {
-    position:absolute;
-    right:16px;
-    background:transparent;
-    border:1px solid var(--line);
-    border-radius:50%;
-    padding:8px;
-    cursor:pointer;
-    font-size:18px;
-    color:var(--txt);
+  h1, h2 {
+    text-align: center;
+    color: var(--brand2);
+    margin: 8px 0;
+    font-size: 24px;
   }
 
   .card {
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:16px;
-    width:100%;
-    box-shadow:0 2px 12px rgba(0,0,0,.15);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+
+  select, input, button, textarea {
+    font-size: 13px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--txt);
+    max-width: 100%;
+  }
+
+  textarea {
+    width: 100%;
+    resize: vertical;
+    font-family: inherit;
   }
 
   .toolbar {
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    align-items:center;
-    justify-content:center;
-  }
-
-  select,input,button,textarea {
-    padding:10px 12px;
-    font-size:14px;
-    border-radius:8px;
-    border:1px solid var(--line);
-    background:var(--bg);
-    color:var(--txt);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 10px;
   }
 
   .btn {
-    background:linear-gradient(90deg,var(--brand),var(--brand2));
-    border:none;
-    color:#fff;
-    font-weight:600;
-    cursor:pointer;
+    background: linear-gradient(90deg, var(--brand), var(--brand2));
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
   }
 
-  .btn.ghost {
-    background:transparent;
-    color:var(--txt);
-    border:1px solid var(--line);
-  }
-
-  table {
-    width:100%;
-    border-collapse:collapse;
-    margin-top:10px;
-    font-size:14px;
-  }
-
-  th,td {
-    padding:10px;
-    border-bottom:1px solid var(--line);
-    text-align:center;
-  }
-
-  th {
-    color:var(--muted);
-    font-weight:600;
-  }
-
-  .badge {
-    padding:3px 8px;
-    border-radius:999px;
-    font-size:12px;
-    display:inline-block;
-  }
-
-  .b-new { background:#0b2a1a; color:#22c55e }
-  .b-active { background:#071b2a; color:#60d5ff }
-  .b-exp { background:#2a0b0e; color:#ef4444 }
-
-  .actions {
-    display:flex;
-    gap:8px;
-    justify-content:center;
-  }
-
-  .iconbtn {
-    border:none;
-    background:transparent;
-    cursor:pointer;
-    padding:6px;
-    border-radius:8px;
-    transition:0.2s;
-  }
-
-  .iconbtn:hover {
-    background:rgba(255,255,255,0.08);
-  }
-
-  .toast {
-    position:fixed;
-    bottom:20px;
-    left:50%;
-    transform:translateX(-50%);
-    background:var(--card);
-    color:var(--txt);
-    padding:10px 14px;
-    border-radius:10px;
-    box-shadow:0 4px 20px rgba(0,0,0,.2);
-    display:none;
-    font-size:14px;
+  .ghost {
+    background: transparent;
+    border: 1px solid var(--line);
   }
 
   .tabs {
-    display:flex;
-    gap:10px;
-    justify-content:center;
-    margin-bottom:10px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
   }
 
-  .tabs button {
-    flex:1;
-    max-width:140px;
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
   }
 
-  svg {
-    width:18px;
-    height:18px;
-    vertical-align:middle;
+  th, td {
+    border-bottom: 1px solid var(--line);
+    padding: 6px 4px;
+    text-align: center;
+  }
+
+  th {
+    font-weight: bold;
+    color: var(--muted);
+  }
+
+  .badge {
+    padding: 3px 6px;
+    border-radius: 999px;
+    font-size: 11px;
+    display: inline-block;
+  }
+
+  .b-new { background: #0b2a1a; color: #22c55e }
+  .b-active { background: #071b2a; color: #60d5ff }
+  .b-exp { background: #2a0b0e; color: #ef4444 }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+  }
+
+  .iconbtn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+
+  .count {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-align: center;
+  }
+
+  .theme-toggle {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    padding: 6px;
+    color: var(--txt);
+    cursor: pointer;
+  }
+
+  @media(max-width: 600px) {
+    table, thead, tbody, th, td, tr {
+      font-size: 10px;
+    }
   }
 </style>
 </head>
 <body>
+
 <div class="wrap">
   <header>
-    <h1>RY7Code New</h1>
-    <button class="theme-toggle" onclick="toggleTheme()">☀️/🌙</button>
+    <h1>RY7Code — لوحة الأكواد</h1>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 / ☀️</button>
   </header>
 
+  <!-- أدوات التحكم -->
   <div class="card">
     <div class="toolbar">
       <label>النوع:</label>
       <select id="genType"><option value="monthly">شهري</option><option value="yearly">سنوي</option></select>
       <label>العدد:</label>
-      <input id="genCount" type="number" value="5" min="1" max="200"/>
+      <input id="genCount" type="number" min="1" max="500" value="5" />
+      <label>بداية الأكواد:</label>
+      <input id="genPrefix" type="text" placeholder="مثال: RY7" maxlength="6" style="width:80px"/>
       <button id="btnGen" class="btn">توليد أكواد</button>
       <button id="btnRefresh" class="btn ghost">تحديث</button>
-      <button id="btnCopyAll" class="btn ghost">📋 نسخ جميع الأكواد</button>
+      <button id="btnCopyAll" class="btn ghost">📋 نسخ الكل</button>
     </div>
-    <textarea id="bulkBox" rows="3" style="width:100%;margin-top:8px" placeholder="RYABC123&#10;RYXYZ789"></textarea>
+    <textarea id="bulkBox" rows="3" placeholder="RY7ABC123&#10;RY7XYZ456"></textarea>
     <button id="btnImport" class="btn" style="margin-top:8px">استيراد دفعي</button>
-    <div id="msg" style="margin-top:6px;color:var(--muted)"></div>
+    <div id="msg" class="count"></div>
   </div>
 
+  <!-- أكواد جديدة -->
   <div class="card">
-    <h2 style="text-align:center">أكواد جديدة</h2>
+    <h2>أكواد جديدة</h2>
     <div class="tabs">
       <button class="btn ghost" onclick="filterUnused('monthly')">📅 شهري</button>
       <button class="btn ghost" onclick="filterUnused('yearly')">📆 سنوي</button>
     </div>
+    <div class="count" id="countUnused"></div>
     <div id="unused"></div>
   </div>
 
+  <!-- أكواد مستخدمة -->
   <div class="card">
-    <h2 style="text-align:center">أكواد مستخدمة</h2>
+    <h2>أكواد مستخدمة</h2>
+    <div class="count" id="countUsed"></div>
     <div id="used"></div>
   </div>
 
+  <!-- أكواد منتهية -->
   <div class="card">
-    <h2 style="text-align:center">أكواد منتهية</h2>
+    <h2>أكواد منتهية</h2>
+    <div class="count" id="countExpired"></div>
     <div id="expired"></div>
   </div>
 </div>
 
-<div id="toast" class="toast"></div>
-
 <script>
 const token = new URLSearchParams(location.search).get("token") || "";
-function api(path,opt={}){opt.headers=Object.assign({},opt.headers||{},{"X-Admin-Token":token,"Content-Type":"application/json"});return fetch(path,opt).then(r=>r.json());}
-function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",2000);}
-function fmt(t){return t?new Date(Number(t)).toLocaleString("ar-SA"):"-";}
-
-function status(r){
-  if(!r.usedAt) return '<span class="badge b-new">لم يبدأ بعد</span>';
-  const dur=r.type==="yearly"?365:30;
-  const end=r.usedAt+dur*86400000;
-  if(Date.now()>=end) return '<span class="badge b-exp">منتهي</span>';
-  const left=Math.ceil((end-Date.now())/86400000);
+function api(path, opt={}) {
+  opt.headers = Object.assign({}, opt.headers || {}, {
+    "X-Admin-Token": token, "Content-Type": "application/json"
+  });
+  return fetch(path, opt).then(r => r.json());
+}
+function fmt(t) {
+  return t ? new Date(Number(t)).toLocaleString("ar-SA") : "-";
+}
+function toast(msg) {
+  alert(msg);
+}
+function status(r) {
+  if (!r.usedAt) return '<span class="badge b-new">لم يبدأ بعد</span>';
+  const dur = r.type === "yearly" ? 365 : 30;
+  const end = r.usedAt + dur * 86400000;
+  if (Date.now() >= end) return '<span class="badge b-exp">منتهي</span>';
+  const left = Math.ceil((end - Date.now()) / 86400000);
   return '<span class="badge b-active">نشط • متبقي '+left+' يوم</span>';
 }
-
-function tableFor(list){
-  if(!list.length) return "<div class='muted' style='text-align:center'>لا يوجد</div>";
-  return "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th>إنشاء</th><th>إجراءات</th></tr></thead><tbody>"+
-    list.map(r=>`<tr>
+function tableFor(list) {
+  if (!list.length) return "<div style='text-align:center;color:var(--muted)'>لا يوجد</div>";
+  return "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th style='font-size:10px'>الإنشاء</th><th>إجراءات</th></tr></thead><tbody>" +
+    list.map(r => `<tr>
       <td>${r.code}</td>
-      <td>${r.type==="yearly"?"سنوي":"شهري"}</td>
+      <td>${r.type === "yearly" ? "سنوي" : "شهري"}</td>
       <td>${status(r)}</td>
-      <td>${fmt(r.createdAt)}</td>
+      <td style='font-size:10px;color:var(--muted)'>${fmt(r.createdAt)}</td>
       <td class='actions'>
-        <button class="iconbtn" onclick="copyCode('${r.code}')" title="نسخ">
-          <svg fill="#60a5fa" viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 00-2 2v12h2V3h12V1zm3 4H8a2 2 0 00-2 2v14h13a2 2 0 002-2V7a2 2 0 00-2-2z"/></svg>
-        </button>
-        <button class="iconbtn" onclick="resetCode('${r.code}')" title="إعادة">
-          <svg fill="#22c55e" viewBox="0 0 24 24"><path d="M12 6V3L8 7l4 4V8a4 4 0 110 8h-1v2h1a6 6 0 000-12z"/></svg>
-        </button>
-        <button class="iconbtn" onclick="delCode('${r.code}')" title="حذف">
-          <svg fill="#ef4444" viewBox="0 0 24 24"><path d="M6 7h12v2H6zm2 3h8l-1 10H9L8 10zm3-6h2l1 2h-4l1-2z"/></svg>
-        </button>
+        <button class="iconbtn" onclick="copyCode('${r.code}')" title="نسخ">📋</button>
+        <button class="iconbtn" onclick="resetCode('${r.code}')" title="إعادة">♻️</button>
+        <button class="iconbtn" onclick="delCode('${r.code}')" title="حذف">🗑️</button>
       </td>
-    </tr>`).join("")+"</tbody></table>";
+    </tr>`).join("") + "</tbody></table>";
 }
-
-function refresh(){api("/api/list").then(j=>{window.__all=j;document.getElementById("unused").innerHTML=tableFor(j.unused);document.getElementById("used").innerHTML=tableFor(j.used);document.getElementById("expired").innerHTML=tableFor(j.expired);});}
-function filterUnused(type){const all=window.__all?.unused||[];const filtered=all.filter(r=>r.type===type);document.getElementById("unused").innerHTML=tableFor(filtered);}
-function delCode(code){api("/api/delete",{method:"POST",body:JSON.stringify({code})}).then(()=>{toast("تم الحذف");refresh();});}
-function resetCode(code){api("/api/reset",{method:"POST",body:JSON.stringify({code})}).then(()=>{toast("تم إعادة التعيين");refresh();});}
-function copyCode(code){navigator.clipboard.writeText(code).then(()=>toast("نسخ "+code));}
-document.getElementById("btnGen").onclick=()=>{const type=document.getElementById("genType").value;const count=parseInt(document.getElementById("genCount").value||1);api("/api/generate",{method:"POST",body:JSON.stringify({type,count})}).then(j=>{toast("تم توليد "+(j.generated||[]).length);refresh();});}
-document.getElementById("btnRefresh").onclick=refresh;
-document.getElementById("btnImport").onclick=()=>{const type="monthly";const codes=document.getElementById("bulkBox").value.split(/\r?\n/).filter(Boolean);api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{toast(j.message);refresh();});}
-document.getElementById("btnCopyAll").onclick=()=>{const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];if(!all.length)return toast("لا توجد أكواد");const txt=all.map(r=>`${r.code} - ${r.type}`).join("\n");navigator.clipboard.writeText(txt).then(()=>toast("تم نسخ جميع الأكواد"));};
-function toggleTheme(){const b=document.body;const isLight=b.getAttribute("data-theme")==="light";b.setAttribute("data-theme",isLight?"dark":"light");}
+function refresh() {
+  api("/api/list").then(j => {
+    window.__all = j;
+    document.getElementById("unused").innerHTML = tableFor(j.unused);
+    document.getElementById("used").innerHTML = tableFor(j.used);
+    document.getElementById("expired").innerHTML = tableFor(j.expired);
+    document.getElementById("countUnused").textContent = "الإجمالي: "+j.unused.length;
+    document.getElementById("countUsed").textContent = "الإجمالي: "+j.used.length;
+    document.getElementById("countExpired").textContent = "الإجمالي: "+j.expired.length;
+  });
+}
+function filterUnused(type) {
+  const all = window.__all?.unused || [];
+  const filtered = all.filter(r => r.type === type);
+  document.getElementById("unused").innerHTML = tableFor(filtered);
+}
+function copyCode(code) {
+  navigator.clipboard.writeText(code).then(() => toast("تم نسخ الكود"));
+}
+function resetCode(code) {
+  api("/api/reset", { method: "POST", body: JSON.stringify({ code }) }).then(() => refresh());
+}
+function delCode(code) {
+  api("/api/delete", { method: "POST", body: JSON.stringify({ code }) }).then(() => refresh());
+}
+document.getElementById("btnGen").onclick = () => {
+  const type = document.getElementById("genType").value;
+  const count = parseInt(document.getElementById("genCount").value || 1);
+  const prefix = document.getElementById("genPrefix").value || "";
+  api("/api/generate", { method: "POST", body: JSON.stringify({ type, count, prefix }) }).then(() => refresh());
+};
+document.getElementById("btnImport").onclick = () => {
+  const codes = document.getElementById("bulkBox").value.split(/\r?\n/).filter(Boolean);
+  const type = document.getElementById("genType").value;
+  api("/api/bulk_import", { method: "POST", body: JSON.stringify({ type, codes }) }).then(() => refresh());
+};
+document.getElementById("btnRefresh").onclick = refresh;
+document.getElementById("btnCopyAll").onclick = () => {
+  const all = [...(window.__all?.unused||[]), ...(window.__all?.used||[]), ...(window.__all?.expired||[])];
+  const txt = all.map(r => r.code).join("\n");
+  navigator.clipboard.writeText(txt).then(() => toast("تم نسخ جميع الأكواد"));
+};
+function toggleTheme() {
+  const b = document.body;
+  const isLight = b.getAttribute("data-theme") === "light";
+  b.setAttribute("data-theme", isLight ? "dark" : "light");
+}
 refresh();
 </script>
 </body>
