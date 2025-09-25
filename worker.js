@@ -254,26 +254,43 @@ function status(r){
   return '<span class="badge b-active">نشط • متبقي '+left+' يوم</span>';
 }
 
-function tableFor(list){
-  if(!list.length) return "<div class='muted' style='text-align:center'>لا يوجد</div>";
-  return "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th>إنشاء</th><th>إجراءات</th></tr></thead><tbody>"+
-    list.map(r=>\`<tr>
-      <td>\${r.code}</td>
-      <td>\${r.type==="yearly"?"سنوي":"شهري"}</td>
-      <td>\${status(r)}</td>
-      <td style="font-size:11px;color:var(--muted)">\${fmt(r.createdAt)}</td>
-      <td class='actions'>
-        <button class="iconbtn" onclick="copyCode('\${r.code}')" title="نسخ">
-          <svg fill="#60a5fa" viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 00-2 2v12h2V3h12V1zm3 4H8a2 2 0 00-2 2v14h13a2 2 0 002-2V7a2 2 0 00-2-2z"/></svg>
-        </button>
-        <button class="iconbtn" onclick="resetCode('\${r.code}')" title="إعادة">
-          <svg fill="#22c55e" viewBox="0 0 24 24"><path d="M12 6V3L8 7l4 4V8a4 4 0 110 8h-1v2h1a6 6 0 000-12z"/></svg>
-        </button>
-        <button class="iconbtn" onclick="delCode('\${r.code}')" title="حذف">
-          <svg fill="#ef4444" viewBox="0 0 24 24"><path d="M6 7h12v2H6zm2 3h8l-1 10H9L8 10zm3-6h2l1 2h-4l1-2z"/></svg>
-        </button>
-      </td>
-    </tr>\`).join("")+"</tbody></table>";
+function tableFor(list) {
+  if (!list.length) {
+    return "<div style='text-align:center;color:var(--muted)'>لا يوجد</div>";
+  }
+
+  let rows = list.map((r) => {
+    const typeLabel = r.type === "yearly" ? "سنوي" : "شهري";
+    const statusLabel = status(r);
+    const createdAt = fmt(r.createdAt);
+
+    return (
+      "<tr>" +
+        "<td>" + r.code + "</td>" +
+        "<td>" + typeLabel + "</td>" +
+        "<td>" + statusLabel + "</td>" +
+        "<td style='font-size:10px;color:var(--muted)'>" + createdAt + "</td>" +
+        "<td class='actions'>" +
+          `<button class="iconbtn" onclick="copyCode('${r.code}')" title="نسخ">📋</button>` +
+          `<button class="iconbtn" onclick="resetCode('${r.code}')" title="إعادة">♻️</button>` +
+          `<button class="iconbtn" onclick="delCode('${r.code}')" title="حذف">🗑️</button>` +
+        "</td>" +
+      "</tr>"
+    );
+  }).join("");
+
+  return (
+    "<table>" +
+      "<thead><tr>" +
+        "<th>الكود</th>" +
+        "<th>النوع</th>" +
+        "<th>الحالة</th>" +
+        "<th style='font-size:10px'>الإنشاء</th>" +
+        "<th>إجراءات</th>" +
+      "</tr></thead>" +
+      "<tbody>" + rows + "</tbody>" +
+    "</table>"
+  );
 }
 
 function refresh(){
