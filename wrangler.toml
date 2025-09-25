@@ -33,9 +33,9 @@ ADMIN_TOKEN = "RY7YYAPICODESB"
 
 # 🗄️ تعريف قاعدة بيانات D1
 [[d1_databases]]
-binding = "RY7_CODES"                 # نفس الاسم اللي مستخدم داخل worker.js
-database_name = "ry7-codes"           # اسم القاعدة (موجود في Cloudflare Dashboard)
-database_id = "adcd2714-2ed4-4e6d-a326-880b81bf44d4"  # ID من Cloudflare
+binding       = "RY7_CODES"                 # نفس الاسم اللي مستخدم داخل worker.js
+database_name = "ry7-codes"                 # اسم القاعدة (موجود في Cloudflare Dashboard)
+database_id   = "adcd2714-2ed4-4e6d-a326-880b81bf44d4"  # ID من Cloudflare
 
 # 📂 رفع ملف admin.html كـ Static Asset
 [[assets]]
