@@ -38,48 +38,61 @@ const ADMIN_HTML = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>RY7Code New</title>
 <style>
+  @font-face {
+    font-family: 'MontserratArabic';
+    src: url('Montserrat-Arabic-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
   :root {
     --bg:#0b0f17; --card:#101726; --txt:#e6edf3; --muted:#9aa4b2;
     --line:#1e2a3a; --brand:#6ee7ff; --brand2:#8b5cf6;
     --good:#22c55e; --bad:#ef4444; --warn:#f59e0b;
   }
   [data-theme="light"] {
-    --bg:#f5f5f5; --card:#fff; --txt:#222; --muted:#666;
+    --bg:#f5f5f5; --card:#ffffff; --txt:#222; --muted:#666;
     --line:#ddd; --brand:#06b6d4; --brand2:#9333ea;
   }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:-apple-system,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt);}
-  .wrap{max-width:1200px;margin:auto;padding:22px}
-  h1{text-align:center;font-size:36px;margin:0;position:relative;animation:glow 2s infinite alternate;}
+  *{box-sizing:border-box;font-family:'MontserratArabic',sans-serif}
+  body{margin:0;background:var(--bg);color:var(--txt);}
+  .wrap{max-width:1200px;margin:auto;padding:20px}
+  header{display:flex;align-items:center;justify-content:center;position:relative}
+  h1{text-align:center;font-size:32px;margin:10px 0;animation:glow 2s infinite alternate;}
   @keyframes glow {
-    from{text-shadow:0 0 10px var(--brand),0 0 20px var(--brand2);}
-    to{text-shadow:0 0 20px var(--brand2),0 0 40px var(--brand);}
+    from{text-shadow:0 0 8px var(--brand),0 0 16px var(--brand2);}
+    to{text-shadow:0 0 16px var(--brand2),0 0 32px var(--brand);}
   }
-  .theme-toggle{position:absolute;top:22px;right:22px;background:transparent;border:1px solid var(--line);border-radius:50%;padding:8px;cursor:pointer}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0;box-shadow:0 4px 20px rgba(0,0,0,.12)}
-  .toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center}
-  select,input,button{padding:10px 14px;font-size:15px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--txt)}
-  button{cursor:pointer}
-  .btn{background:linear-gradient(90deg,var(--brand),var(--brand2));border:none;color:#fff;font-weight:600}
+  .theme-toggle{position:absolute;right:0;background:transparent;border:1px solid var(--line);border-radius:50%;padding:8px;cursor:pointer;font-size:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+  select,input,button,textarea{padding:10px 12px;font-size:14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--txt)}
+  .btn{background:linear-gradient(90deg,var(--brand),var(--brand2));border:none;color:#fff;font-weight:600;cursor:pointer}
   .btn.ghost{background:transparent;color:var(--txt)}
-  table{width:100%;border-collapse:collapse;margin-top:12px}
-  th,td{padding:10px;border-bottom:1px solid var(--line);text-align:right}
-  th{color:var(--muted)}
-  .badge{padding:4px 10px;border-radius:999px;font-size:12px;display:inline-block}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+  th,td{padding:8px;border-bottom:1px solid var(--line);text-align:center}
+  th{color:var(--muted);font-weight:600}
+  .badge{padding:3px 8px;border-radius:999px;font-size:12px;display:inline-block}
   .b-new{background:#0b2a1a;color:#22c55e}
   .b-active{background:#071b2a;color:#60d5ff}
   .b-exp{background:#2a0b0e;color:#ef4444}
-  .actions{display:flex;gap:6px}
-  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);color:var(--txt);padding:12px 16px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.2);display:none}
+  .actions{display:flex;gap:6px;justify-content:center}
+  .iconbtn{border:none;background:transparent;cursor:pointer;padding:6px;border-radius:8px;transition:0.2s}
+  .iconbtn:hover{background:rgba(255,255,255,0.08)}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);color:var(--txt);padding:10px 14px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.2);display:none;font-size:14px}
+  .tabs{display:flex;gap:10px;justify-content:center;margin-bottom:10px}
+  .tabs button{flex:1;max-width:120px}
+  svg{width:18px;height:18px;vertical-align:middle}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <button class="theme-toggle" onclick="toggleTheme()">☀️/🌙</button>
-  <h1>RY7Code New</h1>
+  <header>
+    <h1>RY7Code New</h1>
+    <button class="theme-toggle" onclick="toggleTheme()">☀️/🌙</button>
+  </header>
 
   <div class="card">
     <div class="toolbar">
@@ -98,7 +111,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
 
   <div class="card">
     <h2>أكواد جديدة</h2>
-    <div class="toolbar">
+    <div class="tabs">
       <button class="btn ghost" onclick="filterUnused('monthly')">📅 شهري</button>
       <button class="btn ghost" onclick="filterUnused('yearly')">📆 سنوي</button>
     </div>
@@ -142,9 +155,15 @@ function tableFor(list){
       <td>\${status(r)}</td>
       <td>\${fmt(r.createdAt)}</td>
       <td class='actions'>
-        <button onclick="copyCode('\${r.code}')">📋</button>
-        <button onclick="resetCode('\${r.code}')">♻️</button>
-        <button onclick="delCode('\${r.code}')">🗑️</button>
+        <button class="iconbtn" onclick="copyCode('\${r.code}')" title="نسخ">
+          <svg fill="#60a5fa" viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 00-2 2v12h2V3h12V1zm3 4H8a2 2 0 00-2 2v14h13a2 2 0 002-2V7a2 2 0 00-2-2z"/></svg>
+        </button>
+        <button class="iconbtn" onclick="resetCode('\${r.code}')" title="إعادة">
+          <svg fill="#22c55e" viewBox="0 0 24 24"><path d="M12 6V3L8 7l4 4V8a4 4 0 110 8h-1v2h1a6 6 0 000-12z"/></svg>
+        </button>
+        <button class="iconbtn" onclick="delCode('\${r.code}')" title="حذف">
+          <svg fill="#ef4444" viewBox="0 0 24 24"><path d="M6 7h12v2H6zm2 3h8l-1 10H9L8 10zm3-6h2l1 2h-4l1-2z"/></svg>
+        </button>
       </td>
     </tr>\`).join("")+"</tbody></table>";
 }
@@ -157,7 +176,7 @@ function copyCode(code){navigator.clipboard.writeText(code).then(()=>toast("نس
 document.getElementById("btnGen").onclick=()=>{const type=document.getElementById("genType").value;const count=parseInt(document.getElementById("genCount").value||1);api("/api/generate",{method:"POST",body:JSON.stringify({type,count})}).then(j=>{toast("تم توليد "+(j.generated||[]).length);refresh();});}
 document.getElementById("btnRefresh").onclick=refresh;
 document.getElementById("btnImport").onclick=()=>{const type="monthly";const codes=document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{toast(j.message);refresh();});}
-document.getElementById("btnCopyAll").onclick=()=>{const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];if(!all.length)return toast("لا توجد أكواد");const txt=all.map(r=>\`\${r.code} - \${r.type} - \${r.usedAt?"متبقي "+Math.max(0,Math.ceil(((r.usedAt+(r.type==="yearly"?365:30)*86400000)-Date.now())/86400000))+" يوم":"لم يبدأ"}\`).join("\\n");navigator.clipboard.writeText(txt).then(()=>toast("تم نسخ جميع الأكواد"));};
+document.getElementById("btnCopyAll").onclick=()=>{const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];if(!all.length)return toast("لا توجد أكواد");const txt=all.map(r=>\`\${r.code} - \${r.type}\`).join("\\n");navigator.clipboard.writeText(txt).then(()=>toast("تم نسخ جميع الأكواد"));};
 function toggleTheme(){const b=document.body;const isLight=b.getAttribute("data-theme")==="light";b.setAttribute("data-theme",isLight?"dark":"light");}
 refresh();
 </script>
