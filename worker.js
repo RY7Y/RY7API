@@ -47,6 +47,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
     font-weight: normal;
     font-style: normal;
   }
+
   :root {
     --bg:#0b0f17; --card:#101726; --txt:#e6edf3; --muted:#9aa4b2;
     --line:#1e2a3a; --brand:#6ee7ff; --brand2:#8b5cf6;
@@ -56,35 +57,161 @@ const ADMIN_HTML = `<!DOCTYPE html>
     --bg:#f5f5f5; --card:#ffffff; --txt:#222; --muted:#666;
     --line:#ddd; --brand:#06b6d4; --brand2:#9333ea;
   }
-  *{box-sizing:border-box;font-family:'MontserratArabic',sans-serif}
-  body{margin:0;background:var(--bg);color:var(--txt);}
-  .wrap{max-width:1200px;margin:auto;padding:20px}
-  header{display:flex;align-items:center;justify-content:center;position:relative}
-  h1{text-align:center;font-size:32px;margin:10px 0;animation:glow 2s infinite alternate;}
-  @keyframes glow {
-    from{text-shadow:0 0 8px var(--brand),0 0 16px var(--brand2);}
-    to{text-shadow:0 0 16px var(--brand2),0 0 32px var(--brand);}
+
+  * {
+    box-sizing:border-box;
+    font-family:'MontserratArabic', sans-serif;
   }
-  .theme-toggle{position:absolute;right:0;background:transparent;border:1px solid var(--line);border-radius:50%;padding:8px;cursor:pointer;font-size:18px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 2px 12px rgba(0,0,0,.15)}
-  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
-  select,input,button,textarea{padding:10px 12px;font-size:14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--txt)}
-  .btn{background:linear-gradient(90deg,var(--brand),var(--brand2));border:none;color:#fff;font-weight:600;cursor:pointer}
-  .btn.ghost{background:transparent;color:var(--txt)}
-  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
-  th,td{padding:8px;border-bottom:1px solid var(--line);text-align:center}
-  th{color:var(--muted);font-weight:600}
-  .badge{padding:3px 8px;border-radius:999px;font-size:12px;display:inline-block}
-  .b-new{background:#0b2a1a;color:#22c55e}
-  .b-active{background:#071b2a;color:#60d5ff}
-  .b-exp{background:#2a0b0e;color:#ef4444}
-  .actions{display:flex;gap:6px;justify-content:center}
-  .iconbtn{border:none;background:transparent;cursor:pointer;padding:6px;border-radius:8px;transition:0.2s}
-  .iconbtn:hover{background:rgba(255,255,255,0.08)}
-  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);color:var(--txt);padding:10px 14px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.2);display:none;font-size:14px}
-  .tabs{display:flex;gap:10px;justify-content:center;margin-bottom:10px}
-  .tabs button{flex:1;max-width:120px}
-  svg{width:18px;height:18px;vertical-align:middle}
+  body {
+    margin:0;
+    background:var(--bg);
+    color:var(--txt);
+    display:flex;
+    justify-content:center;
+    padding:20px;
+  }
+  .wrap {
+    width:100%;
+    max-width:1200px;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+  }
+  header {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+  h1 {
+    text-align:center;
+    font-size:32px;
+    margin:10px 0;
+    color:var(--brand2);
+  }
+  .theme-toggle {
+    position:absolute;
+    right:0;
+    background:transparent;
+    border:1px solid var(--line);
+    border-radius:50%;
+    padding:8px;
+    cursor:pointer;
+    font-size:18px;
+    color:var(--txt);
+  }
+
+  .card {
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px;
+    width:100%;
+    box-shadow:0 2px 12px rgba(0,0,0,.15);
+  }
+
+  .toolbar {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:center;
+  }
+
+  select,input,button,textarea {
+    padding:10px 12px;
+    font-size:14px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--bg);
+    color:var(--txt);
+  }
+  .btn {
+    background:linear-gradient(90deg,var(--brand),var(--brand2));
+    border:none;
+    color:#fff;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .btn.ghost {
+    background:transparent;
+    color:var(--txt);
+    border:1px solid var(--line);
+  }
+
+  table {
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+    font-size:14px;
+  }
+  th,td {
+    padding:10px;
+    border-bottom:1px solid var(--line);
+    text-align:center;
+  }
+  th {
+    color:var(--muted);
+    font-weight:600;
+  }
+
+  .badge {
+    padding:3px 8px;
+    border-radius:999px;
+    font-size:12px;
+    display:inline-block;
+  }
+  .b-new { background:#0b2a1a; color:#22c55e }
+  .b-active { background:#071b2a; color:#60d5ff }
+  .b-exp { background:#2a0b0e; color:#ef4444 }
+
+  .actions {
+    display:flex;
+    gap:8px;
+    justify-content:center;
+  }
+  .iconbtn {
+    border:none;
+    background:transparent;
+    cursor:pointer;
+    padding:6px;
+    border-radius:8px;
+    transition:0.2s;
+  }
+  .iconbtn:hover {
+    background:rgba(255,255,255,0.08);
+  }
+
+  .toast {
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    background:var(--card);
+    color:var(--txt);
+    padding:10px 14px;
+    border-radius:10px;
+    box-shadow:0 4px 20px rgba(0,0,0,.2);
+    display:none;
+    font-size:14px;
+  }
+
+  .tabs {
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin-bottom:10px;
+  }
+  .tabs button {
+    flex:1;
+    max-width:140px;
+  }
+
+  svg {
+    width:18px;
+    height:18px;
+    vertical-align:middle;
+  }
 </style>
 </head>
 <body>
@@ -110,7 +237,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
   </div>
 
   <div class="card">
-    <h2>أكواد جديدة</h2>
+    <h2 style="text-align:center">أكواد جديدة</h2>
     <div class="tabs">
       <button class="btn ghost" onclick="filterUnused('monthly')">📅 شهري</button>
       <button class="btn ghost" onclick="filterUnused('yearly')">📆 سنوي</button>
@@ -119,12 +246,12 @@ const ADMIN_HTML = `<!DOCTYPE html>
   </div>
 
   <div class="card">
-    <h2>أكواد مستخدمة</h2>
+    <h2 style="text-align:center">أكواد مستخدمة</h2>
     <div id="used"></div>
   </div>
 
   <div class="card">
-    <h2>أكواد منتهية</h2>
+    <h2 style="text-align:center">أكواد منتهية</h2>
     <div id="expired"></div>
   </div>
 </div>
@@ -147,7 +274,7 @@ function status(r){
 }
 
 function tableFor(list){
-  if(!list.length) return "<div class='muted'>لا يوجد</div>";
+  if(!list.length) return "<div class='muted' style='text-align:center'>لا يوجد</div>";
   return "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th>إنشاء</th><th>إجراءات</th></tr></thead><tbody>"+
     list.map(r=>\`<tr>
       <td>\${r.code}</td>
@@ -182,6 +309,7 @@ refresh();
 </script>
 </body>
 </html>`;
+
 
 // 🔠 مولد الأكواد
 const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
