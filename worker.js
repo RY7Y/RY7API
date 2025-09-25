@@ -59,115 +59,23 @@ const ADMIN_HTML = `<!DOCTYPE html>
     --good:#16a34a; --bad:#dc2626; --warn:#d97706; --info:#2563eb;
   }
 
-* {
-  box-sizing: border-box;
-  font-family: 'MontserratArabic', sans-serif;
-}
+*{box-sizing:border-box;font-family:'MontserratArabic',sans-serif}
+body{margin:0;background:var(--bg);color:var(--txt);display:flex;justify-content:center;padding:0}
+.wrap{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:20px}
+header{display:flex;align-items:center;justify-content:center;position:relative}
+h1{text-align:center;font-size:28px;margin:10px 0;color:var(--brand2)}
+.theme-toggle{position:absolute;right:0;background:transparent;border:1px solid var(--line);border-radius:50%;padding:8px;cursor:pointer;font-size:18px;color:var(--txt)}
 
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--txt);
-  display: flex;
-  justify-content: center;
-  padding: 0;
-}
+.card{background:var(--card);border:1px solid var(--line);border-radius:0;padding:0;margin:0;width:100vw;box-shadow:none}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;padding:16px}
+select,input,button,textarea{padding:10px 12px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--txt)}
+.btn{background:linear-gradient(90deg,var(--brand),var(--brand2));border:none;color:#fff;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
 
-.wrap {
-  width: 100%;
-  max-width: 1200px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
+table{width:100vw;border-collapse:collapse;margin:0;font-size:11px}
+th,td{padding:6px;border-bottom:1px solid var(--line);text-align:center}
+th{color:var(--muted);font-weight:600;font-size:11px}
 
-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-h1 {
-  text-align: center;
-  font-size: 28px;
-  margin: 10px 0;
-  color: var(--brand2);
-}
-
-.theme-toggle {
-  position: absolute;
-  right: 0;
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  padding: 8px;
-  cursor: pointer;
-  font-size: 18px;
-  color: var(--txt);
-}
-
-/* ✅ الجداول بكامل الشاشة */
-.card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 0;
-  padding: 0;
-  margin: 0;
-  width: 100vw;
-  box-shadow: none;
-}
-
-.toolbar {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
-
-select,input,button,textarea {
-  padding: 10px 12px;
-  font-size: 12px;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-  background: var(--bg);
-  color: var(--txt);
-}
-
-.btn {
-  background: linear-gradient(90deg, var(--brand), var(--brand2));
-  border: none;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-}
-.btn.ghost {
-  background: transparent;
-  color: var(--txt);
-  border: 1px solid var(--line);
-}
-
-/* ✅ الجدول */
-table {
-  width: 100vw;
-  border-collapse: collapse;
-  margin: 0;
-  font-size: 11px;
-}
-th,td {
-  padding: 6px;
-  border-bottom: 1px solid var(--line);
-  text-align: center;
-}
-th {
-  color: var(--muted);
-  font-weight: 600;
-  font-size: 11px;
-}
-
-/* ✅ شارات */
 .badge{padding:3px 8px;border-radius:999px;font-size:11px;display:inline-block}
 .b-new{background:#0b2a1a;color:#22c55e}
 .b-active{background:#071b2a;color:#60d5ff}
@@ -178,33 +86,13 @@ th {
 .iconbtn:hover{background:rgba(255,255,255,0.08)}
 .iconbtn svg{width:18px;height:18px}
 
-/* ✅ تنبيهات احترافية */
-.alert {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 12px 18px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  box-shadow: 0 4px 20px rgba(0,0,0,.2);
-  animation: fadeIn 0.3s ease;
-  z-index: 9999;
-}
-.alert svg { width:18px;height:18px; }
-.alert.success { background: var(--good); color:#fff; }
-.alert.error   { background: var(--bad); color:#fff; }
-.alert.warn    { background: var(--warn); color:#fff; }
-.alert.info    { background: var(--info); color:#fff; }
+.alert{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:12px 18px;border-radius:10px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.2);animation:fadeIn 0.3s ease;z-index:9999}
+.alert.success{background:var(--good);color:#fff}
+.alert.error{background:var(--bad);color:#fff}
+.alert.warn{background:var(--warn);color:#fff}
+.alert.info{background:var(--info);color:#fff}
 
-@keyframes fadeIn {
-  from {opacity:0;transform:translate(-50%,20px);}
-  to {opacity:1;transform:translate(-50%,0);}
-}
+@keyframes fadeIn{from{opacity:0;transform:translate(-50%,20px);}to{opacity:1;transform:translate(-50%,0);}}
 
 .tabs{display:flex;gap:10px;justify-content:center;margin-bottom:10px}
 .tabs button{flex:1;max-width:140px}
@@ -259,101 +147,57 @@ th {
 const token=new URLSearchParams(location.search).get("token")||"";
 function api(path,opt={}){opt.headers=Object.assign({},opt.headers||{},{"X-Admin-Token":token,"Content-Type":"application/json"});return fetch(path,opt).then(r=>r.json());}
 
-// ✅ دالة تنبيه احترافي
+// ✅ تنبيه احترافي
 function alertBox(type,msg){
   const div=document.createElement("div");
   div.className="alert "+type;
-  let icon="";
-  if(type==="success") icon="✅";
-  if(type==="error") icon="❌";
-  if(type==="warn") icon="⚠️";
-  if(type==="info") icon="ℹ️";
-  div.innerHTML=\`<span>\${icon}</span>\${msg}\`;
+  div.innerHTML=(type==="success"?"✅":type==="error"?"❌":type==="warn"?"⚠️":"ℹ️")+" "+msg;
   document.body.appendChild(div);
   setTimeout(()=>{div.remove();},2500);
 }
 
 function fmt(t){return t?new Date(Number(t)).toLocaleString("ar-SA"):"-";}
+function status(r){if(!r.usedAt)return'<span class="badge b-new">لم يبدأ بعد</span>';const dur=r.type==="yearly"?365:30;const end=r.usedAt+dur*86400000;if(Date.now()>=end)return'<span class="badge b-exp">منتهي</span>';const left=Math.ceil((end-Date.now())/86400000);return'<span class="badge b-active">نشط • متبقي '+left+' يوم</span>';}
 
-function status(r){
-  if(!r.usedAt) return '<span class="badge b-new">لم يبدأ بعد</span>';
-  const dur=r.type==="yearly"?365:30;
-  const end=r.usedAt+dur*86400000;
-  if(Date.now()>=end) return '<span class="badge b-exp">منتهي</span>';
-  const left=Math.ceil((end-Date.now())/86400000);
-  return '<span class="badge b-active">نشط • متبقي '+left+' يوم</span>';
-}
-
-function tableFor(list) {
-  if (!list.length) return "<div style='text-align:center;color:var(--muted)'>لا يوجد</div>";
+function tableFor(list){if(!list.length)return"<div style='text-align:center;color:var(--muted)'>لا يوجد</div>";
   return "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th>الإنشاء</th><th>إجراءات</th></tr></thead><tbody>"+
-    list.map(r=>\`<tr>
-      <td>\${r.code}</td>
-      <td>\${r.type==="yearly"?"سنوي":"شهري"}</td>
-      <td>\${status(r)}</td>
-      <td style="font-size:10px;color:var(--muted)">\${fmt(r.createdAt)}</td>
-      <td class='actions'>
-        <button class="iconbtn" onclick="copyCode('\${r.code}')" title="نسخ">📋</button>
-        <button class="iconbtn" onclick="resetCode('\${r.code}')" title="إعادة">♻️</button>
-        <button class="iconbtn" onclick="delCode('\${r.code}')" title="حذف">🗑️</button>
-      </td>
-    </tr>\`).join("")+"</tbody></table>";
+  list.map(r=>\`<tr>
+    <td>\${r.code}</td>
+    <td>\${r.type==="yearly"?"سنوي":"شهري"}</td>
+    <td>\${status(r)}</td>
+    <td style="font-size:10px;color:var(--muted)">\${fmt(r.createdAt)}</td>
+    <td class='actions'>
+      <button class="iconbtn" onclick="copyCode('\${r.code}')">📋</button>
+      <button class="iconbtn" onclick="resetCode('\${r.code}')">♻️</button>
+      <button class="iconbtn" onclick="delCode('\${r.code}')">🗑️</button>
+    </td>
+  </tr>\`).join("")+"</tbody></table>";
 }
 
-function refresh(){
-  api("/api/list").then(j=>{
-    window.__all=j;
-    document.getElementById("unused").innerHTML=tableFor(j.unused);
-    document.getElementById("used").innerHTML=tableFor(j.used);
-    document.getElementById("expired").innerHTML=tableFor(j.expired);
-    document.getElementById("countUnused").textContent="الإجمالي: "+j.unused.length;
-    document.getElementById("countUsed").textContent="الإجمالي: "+j.used.length;
-    document.getElementById("countExpired").textContent="الإجمالي: "+j.expired.length;
-  });
-}
+function refresh(){api("/api/list").then(j=>{window.__all=j;
+  document.getElementById("unused").innerHTML=tableFor(j.unused);
+  document.getElementById("used").innerHTML=tableFor(j.used);
+  document.getElementById("expired").innerHTML=tableFor(j.expired);
+  document.getElementById("countUnused").textContent="الإجمالي: "+j.unused.length;
+  document.getElementById("countUsed").textContent="الإجمالي: "+j.used.length;
+  document.getElementById("countExpired").textContent="الإجمالي: "+j.expired.length;
+});}
 
-function filterUnused(type){
-  const all=window.__all?.unused||[];
-  document.getElementById("unused").innerHTML=tableFor(all.filter(r=>r.type===type));
-  document.getElementById("countUnused").textContent="الإجمالي: "+all.filter(r=>r.type===type).length;
-}
+function filterUnused(type){const all=window.__all?.unused||[];document.getElementById("unused").innerHTML=tableFor(all.filter(r=>r.type===type));document.getElementById("countUnused").textContent="الإجمالي: "+all.filter(r=>r.type===type).length;}
 
-function delCode(code){api("/api/delete",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("success","تم الحذف");refresh();});}
-function resetCode(code){api("/api/reset",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("info","تم إعادة التعيين");refresh();});}
-function copyCode(code){navigator.clipboard.writeText(code).then(()=>alertBox("success","نسخ "+code));}
+function delCode(code){api("/api/delete",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("success","🗑️ تم الحذف");refresh();});}
+function resetCode(code){api("/api/reset",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("info","♻️ تم إعادة التعيين");refresh();});}
+function copyCode(code){navigator.clipboard.writeText(code).then(()=>alertBox("success","📋 نسخ "+code));}
 
 window.addEventListener("DOMContentLoaded",()=>{
-  document.getElementById("btnGen").onclick=()=>{
-    const type=document.getElementById("genType").value;
-    const count=parseInt(document.getElementById("genCount").value||1);
-    api("/api/generate",{method:"POST",body:JSON.stringify({type,count})}).then(j=>{
-      alertBox("success","تم توليد "+(j.generated||[]).length+" كود");
-      refresh();
-    });
-  };
-  document.getElementById("btnRefresh").onclick=()=>{refresh();alertBox("info","تم التحديث");};
-  document.getElementById("btnImport").onclick=()=>{
-    const type="monthly";
-    const codes=document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);
-    api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{
-      alertBox("warn",j.message);
-      refresh();
-    });
-  };
-  document.getElementById("btnCopyAll").onclick=()=>{
-    const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];
-    if(!all.length)return alertBox("error","لا توجد أكواد");
-    const txt=all.map(r=>\`\${r.code} - \${r.type}\`).join("\\n");
-    navigator.clipboard.writeText(txt).then(()=>alertBox("success","تم نسخ جميع الأكواد"));
-  };
+  document.getElementById("btnGen").onclick=()=>{const type=document.getElementById("genType").value;const count=parseInt(document.getElementById("genCount").value||1);api("/api/generate",{method:"POST",body:JSON.stringify({type,count})}).then(j=>{alertBox("success","🎉 تم توليد "+(j.generated||[]).length+" كود");refresh();});};
+  document.getElementById("btnRefresh").onclick=()=>{refresh();alertBox("info","🔄 تم التحديث");};
+  document.getElementById("btnImport").onclick=()=>{const type="monthly";const codes=document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{alertBox("warn",j.message);refresh();});};
+  document.getElementById("btnCopyAll").onclick=()=>{const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];if(!all.length)return alertBox("error","⚠️ لا توجد أكواد");const txt=all.map(r=>\`\${r.code} - \${r.type}\`).join("\\n");navigator.clipboard.writeText(txt).then(()=>alertBox("success","📋 تم نسخ جميع الأكواد"));};
   refresh();
 });
 
-function toggleTheme(){
-  const b=document.body;
-  const isLight=b.getAttribute("data-theme")==="light";
-  b.setAttribute("data-theme",isLight?"dark":"light");
-}
+function toggleTheme(){const b=document.body;const isLight=b.getAttribute("data-theme")==="light";b.setAttribute("data-theme",isLight?"dark":"light");}
 </script>
 </body>
 </html>`;
