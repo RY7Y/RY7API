@@ -17,7 +17,7 @@ routes = [
     # مسارات الـ API
     { pattern = "devry7yy.org/api/*", zone_name = "devry7yy.org" },
 
-    # لوحة الإدارة (لوحة الأكواد)
+    # لوحة الإدارة (لوحة الأكواد) — تخدم مباشرة من worker.js
     { pattern = "devry7yy.org/admin*", zone_name = "devry7yy.org" }
 ]
 
