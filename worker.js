@@ -273,34 +273,44 @@ function status(r) {
   return '<span class="badge b-active">نشط • متبقي '+left+' يوم</span>';
 }
 function tableFor(list) {
-  if (!list.length)
+  if (!list.length) {
     return "<div style='text-align:center;color:var(--muted)'>لا يوجد</div>";
+  }
 
   let rows = list.map((r) => {
     const typeLabel = r.type === "yearly" ? "سنوي" : "شهري";
     const statusLabel = status(r);
     const createdAt = fmt(r.createdAt);
+
     return (
       "<tr>" +
-        `<td>${r.code}</td>` +
-        `<td>${typeLabel}</td>` +
-        `<td>${statusLabel}</td>` +
-        `<td style='font-size:10px;color:var(--muted)'>${createdAt}</td>` +
-        `<td class='actions'>
-          <button class="iconbtn" onclick="copyCode('${r.code}')" title="نسخ">📋</button>
-          <button class="iconbtn" onclick="resetCode('${r.code}')" title="إعادة">♻️</button>
-          <button class="iconbtn" onclick="delCode('${r.code}')" title="حذف">🗑️</button>
-        </td>` +
+        "<td>" + r.code + "</td>" +
+        "<td>" + typeLabel + "</td>" +
+        "<td>" + statusLabel + "</td>" +
+        "<td style='font-size:10px;color:var(--muted)'>" + createdAt + "</td>" +
+        "<td class='actions'>" +
+          `<button class="iconbtn" onclick="copyCode('${r.code}')" title="نسخ">📋</button>` +
+          `<button class="iconbtn" onclick="resetCode('${r.code}')" title="إعادة">♻️</button>` +
+          `<button class="iconbtn" onclick="delCode('${r.code}')" title="حذف">🗑️</button>` +
+        "</td>" +
       "</tr>"
     );
   }).join("");
 
   return (
-    "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th style='font-size:10px'>الإنشاء</th><th>إجراءات</th></tr></thead><tbody>" +
-    rows +
-    "</tbody></table>"
+    "<table>" +
+      "<thead><tr>" +
+        "<th>الكود</th>" +
+        "<th>النوع</th>" +
+        "<th>الحالة</th>" +
+        "<th style='font-size:10px'>الإنشاء</th>" +
+        "<th>إجراءات</th>" +
+      "</tr></thead>" +
+      "<tbody>" + rows + "</tbody>" +
+    "</table>"
   );
 }
+
 function filterUnused(type) {
   const all = window.__all?.unused || [];
   const filtered = all.filter(r => r.type === type);
