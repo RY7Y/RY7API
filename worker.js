@@ -1,16 +1,29 @@
 // worker.js
 // ✅ RY7 Login & Codes Dashboard on Cloudflare Workers + D1
 // --------------------------------------------------------
-// - /api/activate         : تفعيل كود وربطه بجهاز، وتوليد كود بديل تلقائي
-// - /api/generate         : توليد أكواد (شهري/سنوي) بعدد محدد
-// - /api/list             : جلب القوائم (أكواد جديدة/مستخدمة/منتهية)
-// - /api/delete           : حذف كود
-// - /api/reset            : إعادة تعيين كود (إلغاء ربطه بالجهاز)
-// - /api/bulk_import      : استيراد أكواد يدوية (سطر لكل كود) بنوع محدد
-// - /admin                : يقدم index.html (لوحة الإدارة)
-// كل مسارات الإدارة تتطلب ADMIN_TOKEN عبر هيدر X-Admin-Token أو query ?token=...
-
-/* ========= مساعدات عامة ========= */
+// - /api/activate    : تفعيل كود وربطه بجهاز، وتوليد كود بديل تلقائي بنفس النوع
+// - /api/generate    : توليد أكواد (شهري/سنوي) بعدد محدد
+// - /api/list        : جلب القوائم (أكواد جديدة/مستخدمة/منتهية)
+// - /api/delete      : حذف كود
+// - /api/reset       : إعادة تعيين كود (فصل الجهاز عن الكود)
+// - /api/bulk_import : استيراد أكواد يدوية (سطر لكل كود) بنوع محدد
+// - /api/status      : فحص حالة الـ API
+// - /admin           : لوحة إدارة (HTML) — تتطلب ADMIN_TOKEN
+//
+// 🔐 كل المسارات الإدارية تحتاج التوكن عبر:
+//   - هيدر:  X-Admin-Token: <ADMIN_TOKEN>
+//   - أو   : /admin?token=<ADMIN_TOKEN>
+//
+// 🗃️ الاعتماد على قاعدة D1 (binding: RY7_CODES)
+// تأكد من وجود هذا في wrangler.toml:
+// [[d1_databases]]
+// binding = "RY7_CODES"
+// database_name = "ry7-codes"
+// database_id = "<your-d1-id>"
+//
+// ومتغير البيئة للتوكن:
+// [vars]
+// ADMIN_TOKEN = "RY7_SUPER_SECRET_2025"
 
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
@@ -20,7 +33,10 @@ function jsonResponse(data, status = 200) {
 }
 
 function textResponse(html, status = 200) {
-  return new Response(html, { status, headers: { "Content-Type": "text/html; charset=utf-8" } });
+  return new Response(html, {
+    status,
+    headers: { "Content-Type": "text/html; charset=utf-8" }
+  });
 }
 
 // حروف توليد الأكواد (بدون O/0 و I/1 لتجنب اللخبطة)
@@ -31,14 +47,13 @@ function randomCode(len = 8) {
   return s;
 }
 
-// التحقق من التوكن الإداري
 function isAdmin(request, env, url) {
   const q = url.searchParams.get("token");
   const h = request.headers.get("X-Admin-Token");
   return !!env.ADMIN_TOKEN && (q === env.ADMIN_TOKEN || h === env.ADMIN_TOKEN);
 }
 
-/* ========= HTML لوحة الإدارة ========= */
+/* =========== HTML (لوحة الإدارة) =========== */
 
 const ADMIN_HTML = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -80,14 +95,14 @@ const ADMIN_HTML = `<!DOCTYPE html>
       <button id="btnRefresh">تحديث القوائم</button>
     </div>
     <div style="margin-top:10px" class="row">
-      <label>استيراد دفعـي (سطر لكل كود):</label>
+      <label>استيراد دفعي (سطر لكل كود):</label>
       <select id="impType">
         <option value="monthly">شهري</option>
         <option value="yearly">سنوي</option>
       </select>
       <button id="btnImport">استيراد</button>
     </div>
-    <textarea id="bulkBox" rows="4" style="width:100%;margin-top:8px" placeholder="RYABC123\nRYXYZ789"></textarea>
+    <textarea id="bulkBox" rows="4" style="width:100%;margin-top:8px" placeholder="RYABC123&#10;RYXYZ789"></textarea>
     <div id="msg" class="muted" style="margin-top:8px"></div>
   </div>
 
@@ -111,15 +126,15 @@ const ADMIN_HTML = `<!DOCTYPE html>
 const token = new URLSearchParams(location.search).get("token") || "";
 function api(path, opt={}) {
   opt.headers = Object.assign({}, opt.headers||{}, {"X-Admin-Token": token, "Content-Type":"application/json"});
-  return fetch(path, opt).then(r=>r.json());
+  return fetch(path, opt).then(async r=>{const j=await r.json(); if(!r.ok) throw j; return j;});
 }
-function el(tag, html){const e=document.createElement(tag); e.innerHTML=html; return e;}
+function setMsg(m){document.getElementById('msg').textContent=m||"";}
+
 function tableFor(list){
   if(!list || !list.length) return "<div class='muted'>لا يوجد بيانات</div>";
   let rows = list.map(r=>{
-    const used = r.deviceId ? \`<span class="tag ok">مستخدم</span>\` : \`<span class="tag">جديد</span>\`;
     const t = r.type==="yearly"?"سنوي":"شهري";
-    const ua = r.usedAt ? new Date(r.usedAt).toLocaleString() : "-";
+    const ua = r.usedAt ? new Date(r.usedAt).toLocaleString("ar-SA") : "-";
     return \`
       <tr>
         <td class="mono">\${r.code}</td>
@@ -142,56 +157,67 @@ function tableFor(list){
       <tbody>\${rows}</tbody>
     </table>\`;
 }
-function setMsg(m){document.getElementById('msg').textContent=m||"";}
+
 function refresh(){
   api('/api/list').then(j=>{
-    if(!j.success){setMsg(j.message||"خطأ"); return;}
     document.getElementById('unused').innerHTML = tableFor(j.unused);
     document.getElementById('used').innerHTML   = tableFor(j.used);
     document.getElementById('expired').innerHTML= tableFor(j.expired);
     setMsg("👌 تم التحديث");
-  }).catch(e=>setMsg("خطأ: "+e));
+  }).catch(e=>setMsg("خطأ: "+(e.message||"")));
 }
+
 function delCode(code){
-  if(!confirm("حذف الكود "+code+" ?")) return;
-  api('/api/delete',{method:'POST', body:JSON.stringify({code})}).then(_=>refresh());
+  if(!confirm("حذف الكود "+code+" ؟")) return;
+  api('/api/delete',{method:'POST', body:JSON.stringify({code})})
+    .then(_=>{ setMsg("🗑️ تم الحذف"); refresh(); })
+    .catch(e=>setMsg("خطأ: "+(e.message||"")));
 }
+
 function resetCode(code){
-  if(!confirm("إعادة تعيين الكود "+code+" (مسح الجهاز المرتبط) ?")) return;
-  api('/api/reset',{method:'POST', body:JSON.stringify({code})}).then(_=>refresh());
+  if(!confirm("إعادة تعيين الكود "+code+" (مسح الجهاز المرتبط) ؟")) return;
+  api('/api/reset',{method:'POST', body:JSON.stringify({code})})
+    .then(_=>{ setMsg("♻️ تم إعادة التعيين"); refresh(); })
+    .catch(e=>setMsg("خطأ: "+(e.message||"")));
 }
+
 function copyCode(code){
-  navigator.clipboard.writeText(code); setMsg("تم نسخ "+code);
+  navigator.clipboard.writeText(code);
+  setMsg("تم نسخ "+code);
 }
+
 document.getElementById('btnRefresh').onclick = refresh;
 document.getElementById('btnGen').onclick = ()=>{
   const type = document.getElementById('genType').value;
   const count = Math.max(1, Math.min(200, parseInt(document.getElementById('genCount').value||"1")));
   api('/api/generate',{method:'POST', body:JSON.stringify({type,count})})
-    .then(j=>{ setMsg(j.message||"تم"); refresh(); });
+    .then(j=>{ setMsg(j.message||"تم"); refresh(); })
+    .catch(e=>setMsg("خطأ: "+(e.message||"")));
 };
+
 document.getElementById('btnImport').onclick = ()=>{
   const type = document.getElementById('impType').value;
   const lines = document.getElementById('bulkBox').value.split(/\\r?\\n/).map(s=>s.trim()).filter(Boolean);
   if(!lines.length){setMsg("لا توجد أكواد"); return;}
   api('/api/bulk_import',{method:'POST', body:JSON.stringify({type,codes:lines})})
-    .then(j=>{ setMsg(j.message||"تم"); refresh(); });
+    .then(j=>{ setMsg(j.message||"تم"); refresh(); })
+    .catch(e=>setMsg("خطأ: "+(e.message||"")));
 };
+
 refresh();
 </script>
 </body></html>`;
 
-/* ========= منطق قاعدة البيانات ========= */
+/* =========== قاعدة البيانات (D1) =========== */
 
-// ننشئ الجدول إن لم يكن موجوداً
 const CREATE_SQL = `
 CREATE TABLE IF NOT EXISTS codes (
   code TEXT PRIMARY KEY,
   type TEXT NOT NULL,           -- 'monthly' | 'yearly'
   deviceId TEXT,                -- UUID الجهاز إن استُخدم
   bundleId TEXT,                -- حزمة التطبيق إن استُخدم
-  usedAt INTEGER DEFAULT 0,     -- وقت الاستخدام (ms)
-  createdAt INTEGER DEFAULT 0   -- وقت الإنشاء (ms)
+  usedAt INTEGER DEFAULT 0,     -- وقت الاستخدام (ms منذ Epoch)
+  createdAt INTEGER DEFAULT 0   -- وقت الإنشاء (ms منذ Epoch)
 );
 `;
 
@@ -199,22 +225,21 @@ async function ensureSchema(env) {
   await env.RY7_CODES.exec(CREATE_SQL);
 }
 
-// تصنيف القوائم
 function splitLists(rows) {
   const now = Date.now();
-  const dur = t => (t === "yearly" ? 365 : 30) * 24 * 60 * 60 * 1000;
+  const dur = (t) => (t === "yearly" ? 365 : 30) * 24 * 60 * 60 * 1000;
   const unused = [];
   const used = [];
   const expired = [];
   for (const r of rows) {
     if (!r.deviceId) { unused.push(r); continue; }
-    const end = (r.usedAt||0) + dur(r.type);
+    const end = (r.usedAt || 0) + dur(r.type);
     if (now >= end) expired.push(r); else used.push(r);
   }
   return { unused, used, expired };
 }
 
-/* ========= التطبيق الرئيسي ========= */
+/* =========== التطبيق الرئيسي =========== */
 
 export default {
   async fetch(request, env, ctx) {
@@ -222,7 +247,7 @@ export default {
     const path = url.pathname;
 
     try {
-      // قدّم لوحة الإدارة
+      // ⭐ لوحة الإدارة (HTML)
       if (path === "/admin") {
         if (!isAdmin(request, env, url)) {
           return textResponse("<h3 style='font-family:sans-serif'>Unauthorized</h3>", 401);
@@ -230,37 +255,44 @@ export default {
         return textResponse(ADMIN_HTML);
       }
 
-      // تأكد من وجود الجدول
+      // تأكد من جاهزية الجدول
       await ensureSchema(env);
 
-      /* ======== تفعيل الكود ======== */
+      // ✅ تفعيل الكود
       if (path === "/api/activate") {
         if (request.method !== "POST") {
           return jsonResponse({ success:false, message:"🚫 الطريقة غير مسموحة (POST فقط)" }, 405);
         }
         const body = await request.json().catch(()=> ({}));
         const { code, deviceId, bundleId, deviceName } = body || {};
+
         if (!code || typeof code !== "string") {
           return jsonResponse({ success:false, message:"⚠️ يرجى إدخال الكود" }, 400);
         }
-        if (code.length !== 8) {
-          return jsonResponse({ success:false, message:"❌ الكود غير صالح (8 خانات)" }, 400);
+        if (!/^[A-Z0-9]{8}$/.test(code)) {
+          return jsonResponse({ success:false, message:"❌ الكود غير صالح (8 خانات حروف/أرقام)" }, 400);
         }
 
-        const row = await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code = ?").bind(code).first();
+        const row = await env.RY7_CODES
+          .prepare("SELECT * FROM codes WHERE code = ?")
+          .bind(code)
+          .first();
+
         if (!row) {
           return jsonResponse({ success:false, message:"🚫 الكود غير موجود" }, 400);
         }
 
-        // مدة النوع
-        const durationDays = row.type === "yearly" ? 365 : 30;
-
-        // لو الكود مربوط بجهاز آخر
-        if (row.deviceId && row.deviceId !== deviceId) {
-          return jsonResponse({ success:false, message:"🚫 هذا الكود مستخدم على جهاز آخر" }, 400);
+        const durationDays = row.type === "yearly" ? 365 : row.type === "monthly" ? 30 : 0;
+        if (!durationDays) {
+          return jsonResponse({ success:false, message:"⚠️ نوع الكود غير معروف" }, 400);
         }
 
-        // لو الكود غير مربوط بعد → اربطه بالجهاز الحالي
+        // مستخدم على جهاز مختلف
+        if (row.deviceId && row.deviceId !== deviceId) {
+          return jsonResponse({ success:false, message:"🚫 هذا الكود مستخدم بالفعل على جهاز آخر" }, 400);
+        }
+
+        // ربط أول مرة
         if (!row.deviceId) {
           await env.RY7_CODES
             .prepare("UPDATE codes SET deviceId=?, bundleId=?, usedAt=? WHERE code=?")
@@ -275,7 +307,7 @@ export default {
             .run();
         }
 
-        // حساب الأيام المتبقية للجهاز نفسه
+        // حساب المتبقي للجهاز نفسه
         let remainingDays = durationDays;
         if (row.usedAt && row.deviceId === deviceId) {
           const elapsed = Math.floor((Date.now() - row.usedAt) / (1000 * 60 * 60 * 24));
@@ -290,7 +322,7 @@ export default {
         });
       }
 
-      /* ======== APIs إدارية (تحتاج ADMIN_TOKEN) ======== */
+      // 🔐 المسارات الإدارية — تتطلب ADMIN_TOKEN
       const adminNeeded = ["/api/generate","/api/list","/api/delete","/api/reset","/api/bulk_import"];
       if (adminNeeded.includes(path)) {
         if (!isAdmin(request, env, url)) {
@@ -319,7 +351,9 @@ export default {
 
       // قائمة الأكواد
       if (path === "/api/list" && request.method === "GET") {
-        const res = await env.RY7_CODES.prepare("SELECT * FROM codes ORDER BY createdAt DESC").all();
+        const res = await env.RY7_CODES
+          .prepare("SELECT * FROM codes ORDER BY createdAt DESC")
+          .all();
         const { unused, used, expired } = splitLists(res.results || []);
         return jsonResponse({ success:true, unused, used, expired });
       }
@@ -367,7 +401,7 @@ export default {
         return jsonResponse({ success:true, message:`تم الاستيراد ✅ ${ok} | مكررة ${dup} | غير صالحة ${bad}` });
       }
 
-      /* ======== فحص الحالة ======== */
+      // حالة السيرفر
       if (path === "/api/status") {
         return jsonResponse({ success:true, message:"✅ API يعمل بشكل طبيعي" });
       }
