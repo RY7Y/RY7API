@@ -225,7 +225,7 @@ CREATE TABLE IF NOT EXISTS codes (
   usedAt INTEGER DEFAULT 0,
   createdAt INTEGER DEFAULT 0
 );
-`;
+`
 
 // ✅ التأكد من وجود الجدول (إن لم يكن موجود يتم إنشاؤه)
 async function ensureSchema(env) {
