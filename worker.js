@@ -39,7 +39,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>لوحة الأكواد — RY7Code</title>
+<title>RY7Code New</title>
 
 <style>
   @font-face {
@@ -202,7 +202,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
 
 <div class="wrap">
   <header>
-    <h1>RY7Code — لوحة الأكواد</h1>
+    <h1>RY7Code New</h1>
     <button class="theme-toggle" onclick="toggleTheme()">🌙 / ☀️</button>
   </header>
 
@@ -271,9 +271,7 @@ function status(r) {
   return '<span class="badge b-active">نشط • متبقي '+left+' يوم</span>';
 }
 function tableFor(list) {
-  if (!list.length) {
-    return "<div style='text-align:center;color:var(--muted)'>لا يوجد</div>";
-  }
+  if (!list.length) return "<div style='text-align:center;color:var(--muted)'>لا يوجد</div>";
   let rows = list.map((r) => {
     const typeLabel = r.type === "yearly" ? "سنوي" : "شهري";
     const statusLabel = status(r);
@@ -294,9 +292,7 @@ function tableFor(list) {
   }).join("");
   return (
     "<table>" +
-      "<thead><tr>" +
-        "<th>الكود</th><th>النوع</th><th>الحالة</th><th style='font-size:10px'>الإنشاء</th><th>إجراءات</th>" +
-      "</tr></thead>" +
+      "<thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th style='font-size:10px'>الإنشاء</th><th>إجراءات</th></tr></thead>" +
       "<tbody>" + rows + "</tbody></table>"
   );
 }
@@ -307,22 +303,6 @@ function filterUnused(type) {
 function copyCode(code) { navigator.clipboard.writeText(code).then(() => toast("تم نسخ الكود")); }
 function resetCode(code) { api("/api/reset", { method:"POST", body: JSON.stringify({ code }) }).then(() => refresh()); }
 function delCode(code) { api("/api/delete", { method:"POST", body: JSON.stringify({ code }) }).then(() => refresh()); }
-document.getElementById("btnGen").onclick = () => {
-  const type = document.getElementById("genType").value;
-  const count = parseInt(document.getElementById("genCount").value || 1);
-  const prefix = document.getElementById("genPrefix").value || "";
-  api("/api/generate", { method:"POST", body: JSON.stringify({ type, count, prefix }) }).then(() => refresh());
-};
-document.getElementById("btnImport").onclick = () => {
-  const codes = document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);
-  const type = document.getElementById("genType").value;
-  api("/api/bulk_import", { method:"POST", body: JSON.stringify({ type, codes }) }).then(() => refresh());
-};
-document.getElementById("btnRefresh").onclick = refresh;
-document.getElementById("btnCopyAll").onclick = () => {
-  const all = [...(window.__all?.unused||[]), ...(window.__all?.used||[]), ...(window.__all?.expired||[])];
-  navigator.clipboard.writeText(all.map(r => r.code).join("\\n")).then(() => toast("تم نسخ جميع الأكواد"));
-};
 function toggleTheme() {
   const b = document.body;
   b.setAttribute("data-theme", b.getAttribute("data-theme") === "light" ? "dark" : "light");
@@ -338,7 +318,27 @@ function refresh() {
     document.getElementById("countExpired").textContent = "الإجمالي: " + j.expired.length;
   });
 }
-refresh();
+
+// ✅ ضمان ربط الأزرار بعد تحميل الصفحة
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("btnGen").onclick = () => {
+    const type = document.getElementById("genType").value;
+    const count = parseInt(document.getElementById("genCount").value || 1);
+    const prefix = document.getElementById("genPrefix").value || "";
+    api("/api/generate", { method:"POST", body: JSON.stringify({ type, count, prefix }) }).then(() => refresh());
+  };
+  document.getElementById("btnImport").onclick = () => {
+    const codes = document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);
+    const type = document.getElementById("genType").value;
+    api("/api/bulk_import", { method:"POST", body: JSON.stringify({ type, codes }) }).then(() => refresh());
+  };
+  document.getElementById("btnRefresh").onclick = refresh;
+  document.getElementById("btnCopyAll").onclick = () => {
+    const all = [...(window.__all?.unused||[]), ...(window.__all?.used||[]), ...(window.__all?.expired||[])];
+    navigator.clipboard.writeText(all.map(r => r.code).join("\\n")).then(() => toast("تم نسخ جميع الأكواد"));
+  };
+  refresh();
+});
 </script>
 </body>
 </html>`;
