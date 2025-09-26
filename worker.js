@@ -256,26 +256,17 @@ export default {
           endDate=new Date(Date.now()+durationDays*86400000).toISOString();
         }
 
-return jsonResponse({
-  success: true,
-  type: row.type,
-  remainingDays,
-  endDate,
-  deviceName: deviceName || "?",
-  bundleId: bundleId || "?",
-  message: `✅ تم التفعيل بنجاح
-━━━━━━━━━━━━━━
-📱 الجهاز: ${deviceName || "?"}
-📦 التطبيق: ${bundleId || "?"}
-🔑 النوع: ${row.type === "yearly" ? "سنوي" : "شهري"}
-⏳ المتبقي: ${remainingDays} يوم
-📅 ينتهي في: ${new Date(endDate).toLocaleDateString("ar-SA", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric"
-  })}`
-});
+
+        return jsonResponse({
+          success:true,
+          type:row.type,
+          remainingDays,
+          endDate,
+          deviceName:deviceName||"?",
+          bundleId:bundleId||"?",
+          message:`🎉 تم التفعيل بنجاح\n📱 الجهاز: ${deviceName||"?"}\n📦 التطبيق: ${bundleId||"?"}\n🔑 النوع: ${row.type==="yearly"?"سنوي":"شهري"}\n⏳ متبقي: ${remainingDays} يوم\n📅 ينتهي في: ${new Date(endDate).toLocaleDateString("ar-SA",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}`
+        });
+      }
 
       // 🔐 مسارات الإدارة
       const adminNeeded=["/api/generate","/api/list","/api/delete","/api/reset","/api/bulk_import"];
