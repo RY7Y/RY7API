@@ -263,19 +263,18 @@ return jsonResponse({
   endDate,
   deviceName: deviceName || "?",
   bundleId: bundleId || "?",
-  message:
-    "✅ تم التفعيل بنجاح\n" +
-    "━━━━━━━━━━━━━━\n" +
-    "📱 الجهاز: " + (deviceName || "?") + "\n" +
-    "📦 التطبيق: " + (bundleId || "?") + "\n" +
-    "🔑 النوع: " + (row.type === "yearly" ? "سنوي" : "شهري") + "\n" +
-    "⏳ المتبقي: " + remainingDays + " يوم\n" +
-    "📅 ينتهي في: " + new Date(endDate).toLocaleDateString("ar-SA", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric"
-    })
+  message: `✅ تم التفعيل بنجاح
+━━━━━━━━━━━━━━
+📱 الجهاز: ${deviceName || "?"}
+📦 التطبيق: ${bundleId || "?"}
+🔑 النوع: ${row.type === "yearly" ? "سنوي" : "شهري"}
+⏳ المتبقي: ${remainingDays} يوم
+📅 ينتهي في: ${new Date(endDate).toLocaleDateString("ar-SA", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  })}`
 });
 
       // 🔐 مسارات الإدارة
