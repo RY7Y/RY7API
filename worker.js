@@ -228,20 +228,42 @@ export default {
       if(path==="/api/activate"&&request.method==="POST"){
         const {code,deviceId,bundleId,deviceName}=await request.json().catch(()=>({}));
         if(!code)return jsonResponse({success:false,message:"أرسل الكود"},400);
+
         const row=await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code=?").bind(code).first();
         if(!row)return jsonResponse({success:false,message:"الكود غير صحيح"},400);
+
         const durationDays=row.type==="yearly"?365:30;
         if(row.deviceId&&row.deviceId!==deviceId)return jsonResponse({success:false,message:"الكود مستخدم بجهاز آخر"},400);
+
+        // لو أول مرة يستخدم
         if(!row.deviceId){
-          await env.RY7_CODES.prepare("UPDATE codes SET deviceId=?,bundleId=?,usedAt=? WHERE code=?").bind(deviceId||"unknown",bundleId||"unknown",Date.now(),code).run();
-          await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)").bind(randomCode(8),row.type,Date.now()).run();
+          await env.RY7_CODES.prepare("UPDATE codes SET deviceId=?,bundleId=?,usedAt=? WHERE code=?")
+            .bind(deviceId||"unknown",bundleId||"unknown",Date.now(),code).run();
+
+          // إنشاء كود جديد تلقائي (bonus)
+          await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)")
+            .bind(randomCode(8),row.type,Date.now()).run();
         }
+
+        // حساب الأيام المتبقية
         let remainingDays=durationDays;
-        if(row.usedAt&&row.deviceId===deviceId){
+        let endDate=null;
+        if(row.usedAt){
           const elapsed=Math.floor((Date.now()-row.usedAt)/86400000);
           remainingDays=Math.max(durationDays-elapsed,0);
+          endDate=new Date(row.usedAt+durationDays*86400000).toISOString();
         }
-        return jsonResponse({success:true,type:row.type,remainingDays,message:`تم التفعيل بنجاح\nالجهاز: ${deviceName||"?"}\nالتطبيق: ${bundleId||"?"}\nالمتبقي: ${remainingDays} يوم`});
+
+        // ✅ نرجع بيانات كاملة للـ iOS حتى يعرض التنبيه
+        return jsonResponse({
+          success:true,
+          type:row.type,
+          remainingDays,
+          endDate,
+          deviceName:deviceName||"?",
+          bundleId:bundleId||"?",
+          message:"تم التفعيل بنجاح"
+        });
       }
 
       // 🔐 مسارات الإدارة
