@@ -215,16 +215,6 @@ function randomCode(len = 8) {
   return Array.from({ length: len }, () => ALPH[Math.floor(Math.random() * ALPH.length)]).join("");
 }
 
-// 🔧 Helpers
-function jsonResponse(obj, status = 200) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: { "content-type": "application/json; charset=utf-8" }
-  });
-}
-function textResponse(str, status = 200) {
-  return new Response(str, { status, headers: { "content-type": "text/html; charset=utf-8" } });
-}
 function isAdmin(request, env, url) {
   const q = url.searchParams.get("token");
   const h = request.headers.get("X-Admin-Token");
