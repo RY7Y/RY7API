@@ -256,7 +256,7 @@ export default {
           endDate=new Date(Date.now()+durationDays*86400000).toISOString();
         }
 
-        // ✅ رسالة نجاح واضحةreturn jsonResponse({
+return jsonResponse({
   success: true,
   type: row.type,
   remainingDays,
