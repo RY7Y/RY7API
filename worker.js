@@ -75,32 +75,75 @@ th{color:var(--muted);font-weight:600;font-size:12px}
 .tabs{display:flex;gap:10px;justify-content:center;margin-bottom:10px}
 .tabs button{flex:1;max-width:140px}
 .count{margin-top:6px;text-align:center;font-size:11px;color:var(--muted)}
-
-.login-box{max-width:400px;margin:auto;text-align:center;padding:20px}
-.login-box input{margin:8px 0;width:100%}
 </style>
 </head>
 <body>
-<div class="wrap" id="app"></div>
+<div class="wrap">
+  <header>
+    <h1>RY7Code New</h1>
+    <button class="theme-toggle" onclick="toggleTheme()">☀️/🌙</button>
+  </header>
+
+  <div class="card">
+    <div class="toolbar">
+      <label>النوع:</label>
+      <select id="genType"><option value="monthly">شهري</option><option value="yearly">سنوي</option></select>
+      <label>العدد:</label>
+      <input id="genCount" type="number" value="5" min="1" max="200"/>
+      <button id="btnGen" class="btn">توليد أكواد</button>
+      <button id="btnRefresh" class="btn ghost">تحديث</button>
+      <button id="btnCopyAll" class="btn ghost">نسخ جميع الأكواد</button>
+    </div>
+    <div id="genOptions" style="display:none;margin-top:10px;text-align:center">
+      <button class="btn" onclick="generateRandom()">توليد عشوائي</button>
+      <div style="margin-top:8px">
+        <input id="prefixInput" type="text" placeholder="اكتب البادئة مثل: RY7" style="width:50%"/>
+        <button class="btn ghost" onclick="generateCustom()">توليد مخصص</button>
+      </div>
+    </div>
+    <textarea id="bulkBox" rows="3" style="width:100%;margin-top:8px" placeholder="RYABC123&#10;RYXYZ789"></textarea>
+    <button id="btnImport" class="btn" style="margin-top:8px">استيراد دفعي</button>
+  </div>
+
+  <div class="card">
+    <h2 style="text-align:center">أكواد جديدة</h2>
+    <div class="tabs">
+      <button class="btn ghost" onclick="filterUnused('monthly')">شهري</button>
+      <button class="btn ghost" onclick="filterUnused('yearly')">سنوي</button>
+    </div>
+    <div id="unused"></div>
+    <div id="countUnused" class="count"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="text-align:center">أكواد مستخدمة</h2>
+    <div id="used"></div>
+    <div id="countUsed" class="count"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="text-align:center">أكواد منتهية</h2>
+    <div id="expired"></div>
+    <div id="countExpired" class="count"></div>
+  </div>
+</div>
 
 <script>
 const token = new URLSearchParams(location.search).get("token") || "";
-const isAdmin = !!token;
-let currentUser = localStorage.getItem("ry7_user") || "";
-
-function api(path,opt={}) {
-  opt.headers = Object.assign({}, opt.headers||{}, {
-    "X-Admin-Token": token,
-    "X-User": currentUser,
-    "Content-Type":"application/json"
-  });
-  return fetch(path,opt).then(r=>r.json());
-}
+function api(path,opt={}){opt.headers=Object.assign({},opt.headers||{},{"X-Admin-Token":token,"Content-Type":"application/json"});return fetch(path,opt).then(r=>r.json());}
 
 function alertBox(type,msg){
-  const icons={success:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>',error:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>',warn:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01M12 5a7 7 0 100 14 7 7 0 000-14z"/></svg>',info:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>'};
-  const div=document.createElement("div");div.className="alert "+type;div.innerHTML=icons[type]+"<span>"+msg+"</span>";
-  document.body.appendChild(div);setTimeout(()=>{div.remove();},3000);
+  const icons={
+    success:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>',
+    error:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>',
+    warn:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01M12 5a7 7 0 100 14 7 7 0 000-14z"/></svg>',
+    info:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>'
+  };
+  const div=document.createElement("div");
+  div.className="alert "+type;
+  div.innerHTML=icons[type]+"<span>"+msg+"</span>";
+  document.body.appendChild(div);
+  setTimeout(()=>{div.remove();},3000);
 }
 
 function fmt(t){return t?new Date(Number(t)).toLocaleString("ar-SA"):"-";}
@@ -108,7 +151,17 @@ function status(r){if(!r.usedAt)return'<span class="badge b-new">جديد</span>
 
 function tableFor(list){if(!list.length)return"<div style='text-align:center;color:var(--muted)'>لا يوجد</div>";
   return "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th>الإنشاء</th><th>إجراءات</th></tr></thead><tbody>"+
-  list.map(r=>\`<tr><td>\${r.code}</td><td>\${r.type==="yearly"?"سنوي":"شهري"}</td><td>\${status(r)}</td><td style="font-size:10px;color:var(--muted)">\${fmt(r.createdAt)}</td><td class='actions'><button class="iconbtn" onclick="copyCode('\${r.code}')">📋</button><button class="iconbtn" onclick="resetCode('\${r.code}')">♻️</button><button class="iconbtn" onclick="delCode('\${r.code}')">❌</button></td></tr>\`).join("")+"</tbody></table>";
+  list.map(r=>\`<tr>
+    <td>\${r.code}</td>
+    <td>\${r.type==="yearly"?"سنوي":"شهري"}</td>
+    <td>\${status(r)}</td>
+    <td style="font-size:10px;color:var(--muted)">\${fmt(r.createdAt)}</td>
+    <td class='actions'>
+      <button class="iconbtn" onclick="copyCode('\${r.code}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 16h8M8 12h8m-6 8h6a2 2 0 002-2V8a2 2 0 00-2-2h-3l-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></button>
+      <button class="iconbtn" onclick="resetCode('\${r.code}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v6h6M20 20v-6h-6M5 19a9 9 0 1114-14l1 1"/></svg></button>
+      <button class="iconbtn" onclick="delCode('\${r.code}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </td>
+  </tr>\`).join("")+"</tbody></table>";
 }
 
 function refresh(){api("/api/list").then(j=>{window.__all=j;
@@ -121,52 +174,35 @@ function refresh(){api("/api/list").then(j=>{window.__all=j;
 });}
 
 function filterUnused(type){const all=window.__all?.unused||[];document.getElementById("unused").innerHTML=tableFor(all.filter(r=>r.type===type));document.getElementById("countUnused").textContent="الإجمالي: "+all.filter(r=>r.type===type).length;}
+
 function delCode(code){api("/api/delete",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("success","تم الحذف");refresh();});}
 function resetCode(code){api("/api/reset",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("info","تمت إعادة التعيين");refresh();});}
 function copyCode(code){navigator.clipboard.writeText(code).then(()=>alertBox("success","تم النسخ: "+code));}
 
-// ✅ شاشة تسجيل الدخول
-function showLogin(){
-  document.getElementById("app").innerHTML=\`
-  <div class="login-box card">
-    <h2>تسجيل الدخول</h2>
-    <input id="u" placeholder="اسم المستخدم"/>
-    <input id="p" type="password" placeholder="كلمة المرور"/>
-    <button class="btn" onclick="loginUser()">دخول</button>
-  </div>\`;
+// ✅ خيارات التوليد
+document.getElementById("btnGen").onclick=()=>{
+  document.getElementById("genOptions").style.display="block";
+};
+function generateRandom(){
+  const type=document.getElementById("genType").value;
+  const count=parseInt(document.getElementById("genCount").value||1);
+  api("/api/generate",{method:"POST",body:JSON.stringify({type,count})}).then(j=>{alertBox("success","تم توليد "+(j.generated||[]).length+" كود عشوائي");refresh();});
+  document.getElementById("genOptions").style.display="none";
 }
-function loginUser(){
-  const u=document.getElementById("u").value.trim();
-  const p=document.getElementById("p").value.trim();
-  if(!u||!p){alertBox("error","أدخل جميع الحقول");return;}
-  // ✅ تحقق بسيط (في الواقع يفضل عبر API)
-  currentUser=u;
-  localStorage.setItem("ry7_user",u);
-  loadApp();
+function generateCustom(){
+  const type=document.getElementById("genType").value;
+  const count=parseInt(document.getElementById("genCount").value||1);
+  const prefix=document.getElementById("prefixInput").value||"RY7";
+  api("/api/generate",{method:"POST",body:JSON.stringify({type,count,prefix})}).then(j=>{alertBox("success","تم توليد "+(j.generated||[]).length+" كود مخصص");refresh();});
+  document.getElementById("genOptions").style.display="none";
 }
 
-// ✅ واجهة لوحة الأكواد
-function loadApp(){
-  document.getElementById("app").innerHTML=\`
-  <header><h1>RY7Code New</h1><button class="theme-toggle" onclick="toggleTheme()">☀️/🌙</button></header>
-  <div class="card"><div class="toolbar"><label>النوع:</label><select id="genType"><option value="monthly">شهري</option><option value="yearly">سنوي</option></select><label>العدد:</label><input id="genCount" type="number" value="5" min="1" max="200"/><button id="btnGen" class="btn">توليد أكواد</button><button id="btnRefresh" class="btn ghost">تحديث</button><button id="btnCopyAll" class="btn ghost">نسخ جميع الأكواد</button></div><div id="genOptions" style="display:none;margin-top:10px;text-align:center"><button class="btn" onclick="generateRandom()">توليد عشوائي</button><div style="margin-top:8px"><input id="prefixInput" type="text" placeholder="RY7" style="width:50%"/><button class="btn ghost" onclick="generateCustom()">توليد مخصص</button></div></div><textarea id="bulkBox" rows="3" style="width:100%;margin-top:8px" placeholder="RYABC123&#10;RYXYZ789"></textarea><button id="btnImport" class="btn" style="margin-top:8px">استيراد دفعي</button></div>
-  <div class="card"><h2 style="text-align:center">أكواد جديدة</h2><div class="tabs"><button class="btn ghost" onclick="filterUnused('monthly')">شهري</button><button class="btn ghost" onclick="filterUnused('yearly')">سنوي</button></div><div id="unused"></div><div id="countUnused" class="count"></div></div>
-  <div class="card"><h2 style="text-align:center">أكواد مستخدمة</h2><div id="used"></div><div id="countUsed" class="count"></div></div>
-  <div class="card"><h2 style="text-align:center">أكواد منتهية</h2><div id="expired"></div><div id="countExpired" class="count"></div></div>\`;
-  document.getElementById("btnGen").onclick=()=>{document.getElementById("genOptions").style.display="block";};
-  document.getElementById("btnRefresh").onclick=()=>{refresh();alertBox("info","تم التحديث");};
-  document.getElementById("btnImport").onclick=()=>{const type=document.getElementById("genType").value;const codes=document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{alertBox("warn",j.message);refresh();});};
-  document.getElementById("btnCopyAll").onclick=()=>{const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];if(!all.length)return alertBox("error","لا توجد أكواد");const txt=all.map(r=>r.code).join("\\n");navigator.clipboard.writeText(txt).then(()=>alertBox("success","تم نسخ جميع الأكواد"));};
-  refresh();
-}
+document.getElementById("btnRefresh").onclick=()=>{refresh();alertBox("info","تم التحديث");};
+document.getElementById("btnImport").onclick=()=>{const type=document.getElementById("genType").value;const codes=document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{alertBox("warn",j.message);refresh();});};
+document.getElementById("btnCopyAll").onclick=()=>{const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];if(!all.length)return alertBox("error","لا توجد أكواد");const txt=all.map(r=>r.code).join("\\n");navigator.clipboard.writeText(txt).then(()=>alertBox("success","تم نسخ جميع الأكواد"));};
 
-function generateRandom(){const type=document.getElementById("genType").value;const count=parseInt(document.getElementById("genCount").value||1);api("/api/generate",{method:"POST",body:JSON.stringify({type,count})}).then(j=>{alertBox("success","تم توليد "+(j.generated||[]).length+" كود عشوائي");refresh();});document.getElementById("genOptions").style.display="none";}
-function generateCustom(){const type=document.getElementById("genType").value;const count=parseInt(document.getElementById("genCount").value||1);const prefix=document.getElementById("prefixInput").value||"RY7";api("/api/generate",{method:"POST",body:JSON.stringify({type,count,prefix})}).then(j=>{alertBox("success","تم توليد "+(j.generated||[]).length+" كود مخصص");refresh();});document.getElementById("genOptions").style.display="none";}
-
+refresh();
 function toggleTheme(){const b=document.body;const isLight=b.getAttribute("data-theme")==="light";b.setAttribute("data-theme",isLight?"dark":"light");}
-
-// ✅ اختيار ما يظهر أولاً
-if(isAdmin){loadApp();}else{if(currentUser){loadApp();}else{showLogin();}}
 </script>
 </body>
 </html>`;
@@ -179,7 +215,7 @@ function randomCode(len=8){return Array.from({length:len},()=>ALPH[Math.floor(Ma
 
 function isAdmin(request,env,url){const q=url.searchParams.get("token");const h=request.headers.get("X-Admin-Token");return !!env.ADMIN_TOKEN&&(q===env.ADMIN_TOKEN||h===env.ADMIN_TOKEN);}
 
-const CREATE_SQL=`CREATE TABLE IF NOT EXISTS codes (code TEXT PRIMARY KEY,type TEXT NOT NULL,deviceId TEXT,bundleId TEXT,username TEXT,usedAt INTEGER DEFAULT 0,createdAt INTEGER DEFAULT 0);`;
+const CREATE_SQL=`CREATE TABLE IF NOT EXISTS codes (code TEXT PRIMARY KEY,type TEXT NOT NULL,deviceId TEXT,bundleId TEXT,usedAt INTEGER DEFAULT 0,createdAt INTEGER DEFAULT 0);`;
 async function ensureSchema(env){await env.RY7_CODES.exec(CREATE_SQL);}
 function splitLists(rows){const now=Date.now();const dur=(t)=>(t==="yearly"?365:30)*86400000;const unused=[],used=[],expired=[];for(const r of rows){if(!r.deviceId){unused.push(r);continue;}const end=(r.usedAt||0)+dur(r.type);if(now>=end)expired.push(r);else used.push(r);}return{unused,used,expired};}
 
@@ -197,7 +233,7 @@ if (path === "/api/activate" && request.method === "POST") {
   // رسائل الخطأ القياسية
   if (!code) {
     return jsonResponse(
-      { success: false, title: "خطأ", message: "ادخل الكود اولاً\n ثم اضغط على دخول 🤍", align: "center" },
+      { success: false, message: "ادخل الكود اولاً\n ثم اضغط على دخول 🤍", title: "خطأ" },
       400
     );
   }
@@ -209,7 +245,7 @@ if (path === "/api/activate" && request.method === "POST") {
 
   if (!row) {
     return jsonResponse(
-      { success: false, title: "خطأ", message: "الكود غير صحيح\nيرجى كتابة الكود الصحيح 🙂", align: "center" },
+      { success: false, message: "الكود غير صحيح\nيرجى كتابة الكود الصحيح 🙂", title: "خطأ" },
       400
     );
   }
@@ -221,9 +257,8 @@ if (path === "/api/activate" && request.method === "POST") {
     return jsonResponse(
       {
         success: false,
-        title: "خطأ",
         message: "هذا الكود مستخدم بجهاز اخر\nاذهب واشتر كود جديد 🙂🏃🏻‍♂️",
-        align: "center",
+        title: "خطأ",
       },
       400
     );
@@ -262,7 +297,7 @@ if (path === "/api/activate" && request.method === "POST") {
     day: "numeric",
   });
 
-  // رسالة النجاح النهائية (مطابقة لباقي الرسائل)
+  // رسالة النجاح النهائية (تُعرَض كما هي في iOS)
   const msg =
     `🎉 تم التفعيل بنجاح\n` +
     `📱 الجهاز: ${deviceName || "?"}\n` +
@@ -274,14 +309,13 @@ if (path === "/api/activate" && request.method === "POST") {
   return jsonResponse({
     success: true,
     title: "نجاح",
-    message: msg,
     status: "activated",
     type: row.type,            // "monthly" | "yearly"
     remainingDays,             // عدد الأيام المتبقية
     endDate: endDateISO,       // ISO 8601
     deviceName: deviceName || "?",
     bundleId: bundleId || "?",
-    align: "center"            // ✅ نفس باقي الرسائل (منتصف)
+    message: msg               // نص جاهز للعرض في iOS
   });
 }
 
