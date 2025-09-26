@@ -12,7 +12,7 @@ function textResponse(html, status = 200) {
   });
 }
 
-// ✅ لوحة الأكواد HTML مضمنة مباشرة (بدل admin.html خارجي)
+// ✅ لوحة الأكواد HTML مضمنة مباشرة
 const ADMIN_HTML = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -43,15 +43,15 @@ header{display:flex;align-items:center;justify-content:center;position:relative}
 h1{text-align:center;font-size:28px;margin:10px 0;color:var(--brand2)}
 .theme-toggle{position:absolute;right:0;background:transparent;border:1px solid var(--line);border-radius:50%;padding:8px;cursor:pointer;font-size:18px;color:var(--txt)}
 
-.card{background:var(--card);border:1px solid var(--line);border-radius:0;padding:0;margin:0;width:100vw;box-shadow:none}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;padding:16px}
-select,input,button,textarea{padding:10px 12px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--txt)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:0;box-shadow:0 4px 12px rgba(0,0,0,0.4)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+select,input,button,textarea{padding:10px 12px;font-size:13px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--txt)}
 .btn{background:linear-gradient(90deg,var(--brand),var(--brand2));border:none;color:#fff;font-weight:600;cursor:pointer}
 .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
 
-table{width:100vw;border-collapse:collapse;margin:0;font-size:11px}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
 th,td{padding:6px;border-bottom:1px solid var(--line);text-align:center}
-th{color:var(--muted);font-weight:600;font-size:11px}
+th{color:var(--muted);font-weight:600;font-size:12px}
 
 .badge{padding:3px 8px;border-radius:999px;font-size:11px;display:inline-block}
 .b-new{background:#0b2a1a;color:#22c55e}
@@ -63,13 +63,14 @@ th{color:var(--muted);font-weight:600;font-size:11px}
 .iconbtn:hover{background:rgba(255,255,255,0.08)}
 .iconbtn svg{width:18px;height:18px}
 
-.alert{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:12px 18px;border-radius:10px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.2);animation:fadeIn 0.3s ease;z-index:9999}
+.alert{position:fixed;bottom:20px;right:20px;min-width:220px;padding:14px 18px;border-radius:16px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;box-shadow:0 6px 24px rgba(0,0,0,.25);animation:slideIn 0.3s ease;z-index:9999;text-align:right}
+.alert svg{width:20px;height:20px;flex-shrink:0}
 .alert.success{background:var(--good);color:#fff}
 .alert.error{background:var(--bad);color:#fff}
 .alert.warn{background:var(--warn);color:#fff}
 .alert.info{background:var(--info);color:#fff}
 
-@keyframes fadeIn{from{opacity:0;transform:translate(-50%,20px);}to{opacity:1;transform:translate(-50%,0);}}
+@keyframes slideIn{from{opacity:0;transform:translateX(120%);}to{opacity:1;transform:translateX(0);}}
 
 .tabs{display:flex;gap:10px;justify-content:center;margin-bottom:10px}
 .tabs button{flex:1;max-width:140px}
@@ -91,7 +92,14 @@ th{color:var(--muted);font-weight:600;font-size:11px}
       <input id="genCount" type="number" value="5" min="1" max="200"/>
       <button id="btnGen" class="btn">توليد أكواد</button>
       <button id="btnRefresh" class="btn ghost">تحديث</button>
-      <button id="btnCopyAll" class="btn ghost">📋 نسخ جميع الأكواد</button>
+      <button id="btnCopyAll" class="btn ghost">نسخ جميع الأكواد</button>
+    </div>
+    <div id="genOptions" style="display:none;margin-top:10px;text-align:center">
+      <button class="btn" onclick="generateRandom()">توليد عشوائي</button>
+      <div style="margin-top:8px">
+        <input id="prefixInput" type="text" placeholder="اكتب البادئة مثل: RY7" style="width:50%"/>
+        <button class="btn ghost" onclick="generateCustom()">توليد مخصص</button>
+      </div>
     </div>
     <textarea id="bulkBox" rows="3" style="width:100%;margin-top:8px" placeholder="RYABC123&#10;RYXYZ789"></textarea>
     <button id="btnImport" class="btn" style="margin-top:8px">استيراد دفعي</button>
@@ -100,8 +108,8 @@ th{color:var(--muted);font-weight:600;font-size:11px}
   <div class="card">
     <h2 style="text-align:center">أكواد جديدة</h2>
     <div class="tabs">
-      <button class="btn ghost" onclick="filterUnused('monthly')">📅 شهري</button>
-      <button class="btn ghost" onclick="filterUnused('yearly')">📆 سنوي</button>
+      <button class="btn ghost" onclick="filterUnused('monthly')">شهري</button>
+      <button class="btn ghost" onclick="filterUnused('yearly')">سنوي</button>
     </div>
     <div id="unused"></div>
     <div id="countUnused" class="count"></div>
@@ -124,17 +132,22 @@ th{color:var(--muted);font-weight:600;font-size:11px}
 const token = new URLSearchParams(location.search).get("token") || "";
 function api(path,opt={}){opt.headers=Object.assign({},opt.headers||{},{"X-Admin-Token":token,"Content-Type":"application/json"});return fetch(path,opt).then(r=>r.json());}
 
-// ✅ تنبيه احترافي
 function alertBox(type,msg){
+  const icons={
+    success:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>',
+    error:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>',
+    warn:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01M12 5a7 7 0 100 14 7 7 0 000-14z"/></svg>',
+    info:'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>'
+  };
   const div=document.createElement("div");
   div.className="alert "+type;
-  div.innerHTML=(type==="success"?"✅":type==="error"?"❌":type==="warn"?"⚠️":"ℹ️")+" "+msg;
+  div.innerHTML=icons[type]+"<span>"+msg+"</span>";
   document.body.appendChild(div);
-  setTimeout(()=>{div.remove();},2500);
+  setTimeout(()=>{div.remove();},3000);
 }
 
 function fmt(t){return t?new Date(Number(t)).toLocaleString("ar-SA"):"-";}
-function status(r){if(!r.usedAt)return'<span class="badge b-new">لم يبدأ بعد</span>';const dur=r.type==="yearly"?365:30;const end=r.usedAt+dur*86400000;if(Date.now()>=end)return'<span class="badge b-exp">منتهي</span>';const left=Math.ceil((end-Date.now())/86400000);return'<span class="badge b-active">نشط • متبقي '+left+' يوم</span>';}
+function status(r){if(!r.usedAt)return'<span class="badge b-new">جديد</span>';const dur=r.type==="yearly"?365:30;const end=r.usedAt+dur*86400000;if(Date.now()>=end)return'<span class="badge b-exp">منتهي</span>';const left=Math.ceil((end-Date.now())/86400000);return'<span class="badge b-active">نشط • متبقي '+left+' يوم</span>';}
 
 function tableFor(list){if(!list.length)return"<div style='text-align:center;color:var(--muted)'>لا يوجد</div>";
   return "<table><thead><tr><th>الكود</th><th>النوع</th><th>الحالة</th><th>الإنشاء</th><th>إجراءات</th></tr></thead><tbody>"+
@@ -144,9 +157,9 @@ function tableFor(list){if(!list.length)return"<div style='text-align:center;col
     <td>\${status(r)}</td>
     <td style="font-size:10px;color:var(--muted)">\${fmt(r.createdAt)}</td>
     <td class='actions'>
-      <button class="iconbtn" onclick="copyCode('\${r.code}')">📋</button>
-      <button class="iconbtn" onclick="resetCode('\${r.code}')">♻️</button>
-      <button class="iconbtn" onclick="delCode('\${r.code}')">🗑️</button>
+      <button class="iconbtn" onclick="copyCode('\${r.code}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 16h8M8 12h8m-6 8h6a2 2 0 002-2V8a2 2 0 00-2-2h-3l-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></button>
+      <button class="iconbtn" onclick="resetCode('\${r.code}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v6h6M20 20v-6h-6M5 19a9 9 0 1114-14l1 1"/></svg></button>
+      <button class="iconbtn" onclick="delCode('\${r.code}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </td>
   </tr>\`).join("")+"</tbody></table>";
 }
@@ -162,18 +175,33 @@ function refresh(){api("/api/list").then(j=>{window.__all=j;
 
 function filterUnused(type){const all=window.__all?.unused||[];document.getElementById("unused").innerHTML=tableFor(all.filter(r=>r.type===type));document.getElementById("countUnused").textContent="الإجمالي: "+all.filter(r=>r.type===type).length;}
 
-function delCode(code){api("/api/delete",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("success","🗑️ حذف "+code);refresh();});}
-function resetCode(code){api("/api/reset",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("info","♻️ إعادة "+code);refresh();});}
-function copyCode(code){navigator.clipboard.writeText(code).then(()=>alertBox("success","📋 نسخ "+code));}
+function delCode(code){api("/api/delete",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("success","تم الحذف");refresh();});}
+function resetCode(code){api("/api/reset",{method:"POST",body:JSON.stringify({code})}).then(()=>{alertBox("info","تمت إعادة التعيين");refresh();});}
+function copyCode(code){navigator.clipboard.writeText(code).then(()=>alertBox("success","تم النسخ: "+code));}
 
-window.addEventListener("DOMContentLoaded",()=>{
-  document.getElementById("btnGen").onclick=()=>{const type=document.getElementById("genType").value;const count=parseInt(document.getElementById("genCount").value||1);api("/api/generate",{method:"POST",body:JSON.stringify({type,count})}).then(j=>{alertBox("success","🎉 تم توليد "+(j.generated||[]).length+" كود");refresh();});};
-  document.getElementById("btnRefresh").onclick=()=>{refresh();alertBox("info","🔄 تم التحديث");};
-  document.getElementById("btnImport").onclick=()=>{const type=document.getElementById("genType").value;const codes=document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{alertBox("warn",j.message);refresh();});};
-  document.getElementById("btnCopyAll").onclick=()=>{const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];if(!all.length)return alertBox("error","⚠️ لا توجد أكواد");const txt=all.map(r=>r.code).join("\\n");navigator.clipboard.writeText(txt).then(()=>alertBox("success","📋 تم نسخ جميع الأكواد"));};
-  refresh();
-});
+// ✅ خيارات التوليد
+document.getElementById("btnGen").onclick=()=>{
+  document.getElementById("genOptions").style.display="block";
+};
+function generateRandom(){
+  const type=document.getElementById("genType").value;
+  const count=parseInt(document.getElementById("genCount").value||1);
+  api("/api/generate",{method:"POST",body:JSON.stringify({type,count})}).then(j=>{alertBox("success","تم توليد "+(j.generated||[]).length+" كود عشوائي");refresh();});
+  document.getElementById("genOptions").style.display="none";
+}
+function generateCustom(){
+  const type=document.getElementById("genType").value;
+  const count=parseInt(document.getElementById("genCount").value||1);
+  const prefix=document.getElementById("prefixInput").value||"RY7";
+  api("/api/generate",{method:"POST",body:JSON.stringify({type,count,prefix})}).then(j=>{alertBox("success","تم توليد "+(j.generated||[]).length+" كود مخصص");refresh();});
+  document.getElementById("genOptions").style.display="none";
+}
 
+document.getElementById("btnRefresh").onclick=()=>{refresh();alertBox("info","تم التحديث");};
+document.getElementById("btnImport").onclick=()=>{const type=document.getElementById("genType").value;const codes=document.getElementById("bulkBox").value.split(/\\r?\\n/).filter(Boolean);api("/api/bulk_import",{method:"POST",body:JSON.stringify({type,codes})}).then(j=>{alertBox("warn",j.message);refresh();});};
+document.getElementById("btnCopyAll").onclick=()=>{const all=[...(window.__all?.unused||[]),...(window.__all?.used||[]),...(window.__all?.expired||[])];if(!all.length)return alertBox("error","لا توجد أكواد");const txt=all.map(r=>r.code).join("\\n");navigator.clipboard.writeText(txt).then(()=>alertBox("success","تم نسخ جميع الأكواد"));};
+
+refresh();
 function toggleTheme(){const b=document.body;const isLight=b.getAttribute("data-theme")==="light";b.setAttribute("data-theme",isLight?"dark":"light");}
 </script>
 </body>
@@ -199,11 +227,11 @@ export default {
       // ✅ تفعيل الكود
       if(path==="/api/activate"&&request.method==="POST"){
         const {code,deviceId,bundleId,deviceName}=await request.json().catch(()=>({}));
-        if(!code)return jsonResponse({success:false,message:"⚠️ أرسل الكود"},400);
+        if(!code)return jsonResponse({success:false,message:"أرسل الكود"},400);
         const row=await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code=?").bind(code).first();
-        if(!row)return jsonResponse({success:false,message:"تاكد من كتابة الكود الصحيح 🙂"},400);
+        if(!row)return jsonResponse({success:false,message:"الكود غير صحيح"},400);
         const durationDays=row.type==="yearly"?365:30;
-        if(row.deviceId&&row.deviceId!==deviceId)return jsonResponse({success:false,message:"تم استخدام الكود بجهاز اخر\nقم بشراء كود جديد 🚫🏃🏻‍♂️"},400);
+        if(row.deviceId&&row.deviceId!==deviceId)return jsonResponse({success:false,message:"الكود مستخدم بجهاز آخر"},400);
         if(!row.deviceId){
           await env.RY7_CODES.prepare("UPDATE codes SET deviceId=?,bundleId=?,usedAt=? WHERE code=?").bind(deviceId||"unknown",bundleId||"unknown",Date.now(),code).run();
           await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)").bind(randomCode(8),row.type,Date.now()).run();
@@ -213,19 +241,31 @@ export default {
           const elapsed=Math.floor((Date.now()-row.usedAt)/86400000);
           remainingDays=Math.max(durationDays-elapsed,0);
         }
-        return jsonResponse({success:true,type:row.type,remainingDays,message:`🎉 تم التفعيل\n📱 ${deviceName||"?"}\n📦 ${bundleId||"?"}\n⏳ ${remainingDays} يوم`});
+        return jsonResponse({success:true,type:row.type,remainingDays,message:`تم التفعيل بنجاح\nالجهاز: ${deviceName||"?"}\nالتطبيق: ${bundleId||"?"}\nالمتبقي: ${remainingDays} يوم`});
       }
 
       // 🔐 مسارات الإدارة
       const adminNeeded=["/api/generate","/api/list","/api/delete","/api/reset","/api/bulk_import"];
       if(adminNeeded.includes(path)&&!isAdmin(request,env,url))return jsonResponse({success:false,message:"Unauthorized"},401);
 
+      // ✅ توليد الأكواد
       if(path==="/api/generate"&&request.method==="POST"){
-        const {type,count}=await request.json().catch(()=>({}));
-        if(!["monthly","yearly"].includes(type))return jsonResponse({success:false,message:"❌ النوع غير صحيح"},400);
-        const n=Math.max(1,Math.min(200,parseInt(count||1)));const out=[];
-        for(let i=0;i<n;i++){const c=randomCode(8);await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)").bind(c,type,Date.now()).run();out.push(c);}
-        return jsonResponse({success:true,generated:out,message:`✅ ${out.length} كود`});
+        const {type,count,prefix}=await request.json().catch(()=>({}));
+        if(!["monthly","yearly"].includes(type))return jsonResponse({success:false,message:"النوع غير صحيح"},400);
+        const n=Math.max(1,Math.min(200,parseInt(count||1)));
+        const out=[];
+        for(let i=0;i<n;i++){
+          let c;
+          if(prefix&&/^[A-Z0-9]+$/i.test(prefix)){
+            const remain=8-prefix.length;
+            c=prefix.toUpperCase()+randomCode(remain);
+          }else{
+            c=randomCode(8);
+          }
+          await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)").bind(c,type,Date.now()).run();
+          out.push(c);
+        }
+        return jsonResponse({success:true,generated:out,message:`تم توليد ${out.length} كود`});
       }
 
       if(path==="/api/list"&&request.method==="GET"){
@@ -237,13 +277,13 @@ export default {
       if(path==="/api/delete"&&request.method==="POST"){
         const {code}=await request.json().catch(()=>({}));
         await env.RY7_CODES.prepare("DELETE FROM codes WHERE code=?").bind(code).run();
-        return jsonResponse({success:true,message:"🗑️ حذف "+code});
+        return jsonResponse({success:true,message:"تم حذف الكود "+code});
       }
 
       if(path==="/api/reset"&&request.method==="POST"){
         const {code}=await request.json().catch(()=>({}));
         await env.RY7_CODES.prepare("UPDATE codes SET deviceId=NULL,bundleId=NULL,usedAt=0 WHERE code=?").bind(code).run();
-        return jsonResponse({success:true,message:"♻️ إعادة "+code});
+        return jsonResponse({success:true,message:"تمت إعادة تعيين الكود "+code});
       }
 
       if(path==="/api/bulk_import"&&request.method==="POST"){
@@ -255,11 +295,11 @@ export default {
           try{await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)").bind(c,type,Date.now()).run();ok++;}
           catch(e){dup++;}
         }
-        return jsonResponse({success:true,message:`✅ ${ok} | مكرر ${dup} | غير صالح ${bad}`});
+        return jsonResponse({success:true,message:`جديد ${ok} | مكرر ${dup} | غير صالح ${bad}`});
       }
 
-      if(path==="/api/status"){return jsonResponse({success:true,message:"✅ API يعمل"});}
-      return jsonResponse({success:false,message:"❌ مسار غير موجود"},404);
-    }catch(err){return jsonResponse({success:false,message:"❌ خطأ: "+err.message},500);}
+      if(path==="/api/status"){return jsonResponse({success:true,message:"API يعمل"});}
+      return jsonResponse({success:false,message:"المسار غير موجود"},404);
+    }catch(err){return jsonResponse({success:false,message:"خطأ: "+err.message},500);}
   }
 };
