@@ -263,7 +263,7 @@ return jsonResponse({
   endDate,
   deviceName: deviceName || "?",
   bundleId: bundleId || "?",
-  message: 
+  message:
     "✅ تم التفعيل بنجاح\n" +
     "━━━━━━━━━━━━━━\n" +
     "📱 الجهاز: " + (deviceName || "?") + "\n" +
@@ -275,7 +275,8 @@ return jsonResponse({
       year: "numeric",
       month: "long",
       day: "numeric"
-    }
+    })
+});
 
       // 🔐 مسارات الإدارة
       const adminNeeded=["/api/generate","/api/list","/api/delete","/api/reset","/api/bulk_import"];
