@@ -256,17 +256,70 @@ export default {
           endDate=new Date(Date.now()+durationDays*86400000).toISOString();
         }
 
-        // ✅ رسالة نجاح واضحة
-        return jsonResponse({
-          success:true,
-          type:row.type,
-          remainingDays,
-          endDate,
-          deviceName:deviceName||"?",
-          bundleId:bundleId||"?",
-          message:`🎉 تم التفعيل بنجاح\n📱 الجهاز: ${deviceName||"?"}\n📦 التطبيق: ${bundleId||"?"}\n🔑 النوع: ${row.type==="yearly"?"سنوي":"شهري"}\n⏳ متبقي: ${remainingDays} يوم\n📅 ينتهي في: ${new Date(endDate).toLocaleDateString("ar-SA",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}`
-        });
-      }
+        // ✅ رسالة نجاح واضحةreturn jsonResponse({
+  success: true,
+  type: row.type,
+  remainingDays,
+  endDate,
+  deviceName: deviceName || "?",
+  bundleId: bundleId || "?",
+  message: `
+    <div style="font-family: 'MontserratArabic', sans-serif; text-align:right; line-height:1.6;">
+      <div style="color:#28a745; font-size:18px; font-weight:bold; margin-bottom:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#28a745" viewBox="0 0 16 16" style="vertical-align:middle; margin-left:4px;">
+          <path d="M16 2a2 2 0 0 1-2-2H2a2 2 0 0 1-2 2v12a2 
+          2 0 0 1 2 2h12a2 2 0 0 1 2-2V2z"/>
+          <path fill="#fff" d="M6.173 11.414 2.757 8l1.414-1.414L6.173 
+          8.586l5.657-5.657L13.243 4l-7.07 7.414z"/>
+        </svg>
+        تم التفعيل بنجاح
+      </div>
+      <div style="color:#007bff;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#007bff" viewBox="0 0 16 16" style="vertical-align:middle; margin-left:4px;">
+          <path d="M8 0a5 5 0 0 0-5 5v3H2a2 2 0 0 
+          0-2 2v4a2 2 0 0 0 2 2h12a2 2 0 
+          0 0 2-2v-4a2 2 0 0 0-2-2h-1V5a5 
+          5 0 0 0-5-5z"/>
+        </svg>
+        الجهاز: ${deviceName || "?"}
+      </div>
+      <div style="color:#6f42c1;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#6f42c1" viewBox="0 0 16 16" style="vertical-align:middle; margin-left:4px;">
+          <path d="M2 2h12v12H2z"/>
+        </svg>
+        التطبيق: ${bundleId || "?"}
+      </div>
+      <div style="color:#fd7e14;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#fd7e14" viewBox="0 0 16 16" style="vertical-align:middle; margin-left:4px;">
+          <path d="M8 1a7 7 0 1 0 7 7A7 7 
+          0 0 0 8 1zm0 12A5 5 0 1 1 
+          13 8a5 5 0 0 1-5 5z"/>
+          <path d="M8 4a.5.5 0 0 1 .5.5v3l2.5 
+          1.5a.5.5 0 0 1-.5.866l-3-1.8V4.5A.5.5 
+          0 0 1 8 4z"/>
+        </svg>
+        النوع: ${row.type === "yearly" ? "سنوي" : "شهري"}
+      </div>
+      <div style="color:#20c997;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#20c997" viewBox="0 0 16 16" style="vertical-align:middle; margin-left:4px;">
+          <path d="M8 3.993c-2.21 0-4 1.79-4 
+          4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zM8 
+          0a8 8 0 1 0 8 8A8 8 0 0 0 
+          8 0z"/>
+        </svg>
+        متبقي: ${remainingDays} يوم
+      </div>
+      <div style="color:#dc3545;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#dc3545" viewBox="0 0 16 16" style="vertical-align:middle; margin-left:4px;">
+          <path d="M3.5 0a.5.5 0 0 0 0 1h.691l.933 
+          2.773A5.5 5.5 0 1 0 8.5 13V4h1v9a6.5 
+          6.5 0 1 1-6-6.5L3.5 1H3.5z"/>
+        </svg>
+        ينتهي في: ${new Date(endDate).toLocaleDateString("ar-SA",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}
+      </div>
+    </div>
+  `
+});
 
       // 🔐 مسارات الإدارة
       const adminNeeded=["/api/generate","/api/list","/api/delete","/api/reset","/api/bulk_import"];
