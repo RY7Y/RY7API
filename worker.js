@@ -227,13 +227,13 @@ export default {
       // ✅ تفعيل الكود
       if(path==="/api/activate"&&request.method==="POST"){
         const {code,deviceId,bundleId,deviceName}=await request.json().catch(()=>({}));
-        if(!code)return jsonResponse({success:false,message:"⚠️ يرجى إدخال الكود أولاً."},400);
+        if(!code)return jsonResponse({success:false,message:"ادخل الكود اولاً\n ثم اضغط على دخول 🤍"},400);
 
         const row=await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code=?").bind(code).first();
-        if(!row)return jsonResponse({success:false,message:"🚫 الكود غير صحيح أو غير موجود."},400);
+        if(!row)return jsonResponse({success:false,message:"الكود غير صحيح\nيرجى كتابة الكود الصحيح 🙂"},400);
 
         const durationDays=row.type==="yearly"?365:30;
-        if(row.deviceId&&row.deviceId!==deviceId)return jsonResponse({success:false,message:"🚫 هذا الكود مستخدم بالفعل على جهاز آخر."},400);
+        if(row.deviceId&&row.deviceId!==deviceId)return jsonResponse({success:false,message:"هذا الكود مستخدم بجهاز اخر\nاذهب واشتر كود جديد 🙂🏃🏻‍♂️"},400);
 
         // لو أول مرة يستخدم
         if(!row.deviceId){
