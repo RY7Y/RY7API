@@ -298,7 +298,7 @@ if (path === "/api/activate" && request.method === "POST") {
     day: "numeric",
   });
 
-  // رسالة النجاح النهائية (موحّدة مثل باقي الرسائل)
+  // رسالة النجاح النهائية (موحدة مع باقي الرسائل)
   const msg =
     `🎉 تم التفعيل بنجاح\n` +
     `📱 الجهاز: ${deviceName || "?"}\n` +
@@ -310,14 +310,14 @@ if (path === "/api/activate" && request.method === "POST") {
   return jsonResponse({
     success: true,
     title: "نجاح",
+    message: msg,
     status: "activated",
     type: row.type,            // "monthly" | "yearly"
     remainingDays,             // عدد الأيام المتبقية
     endDate: endDateISO,       // ISO 8601
     deviceName: deviceName || "?",
     bundleId: bundleId || "?",
-    message: msg,              // نص جاهز للعرض في iOS
-    align: "center"            // 🆕 محاذاة النص للمنتصف
+    align: "center"            // محاذاة للمنتصف
   });
 }
 
