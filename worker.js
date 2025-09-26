@@ -209,237 +209,136 @@ function toggleTheme(){const b=document.body;const isLight=b.getAttribute("data-
 
 // worker.js — API (موحّد الرسائل: title + message + align:"center")
 
-// 🔠 مولّد الأكواد
+// 🔠 مولد الأكواد
 const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-function randomCode(len = 8) {
-  return Array.from({ length: len }, () => ALPH[Math.floor(Math.random() * ALPH.length)]).join("");
-}
+function randomCode(len=8){return Array.from({length:len},()=>ALPH[Math.floor(Math.random()*ALPH.length)]).join("");}
 
-function isAdmin(request, env, url) {
-  const q = url.searchParams.get("token");
-  const h = request.headers.get("X-Admin-Token");
-  return !!env.ADMIN_TOKEN && (q === env.ADMIN_TOKEN || h === env.ADMIN_TOKEN);
-}
+function isAdmin(request,env,url){const q=url.searchParams.get("token");const h=request.headers.get("X-Admin-Token");return !!env.ADMIN_TOKEN&&(q===env.ADMIN_TOKEN||h===env.ADMIN_TOKEN);}
 
-const CREATE_SQL = `CREATE TABLE IF NOT EXISTS codes (
-  code TEXT PRIMARY KEY,
-  type TEXT NOT NULL,
-  deviceId TEXT,
-  bundleId TEXT,
-  usedAt INTEGER DEFAULT 0,
-  createdAt INTEGER DEFAULT 0
-);`;
-
-async function ensureSchema(env) { await env.RY7_CODES.exec(CREATE_SQL); }
-
-function splitLists(rows) {
-  const now = Date.now();
-  const dur = (t) => (t === "yearly" ? 365 : 30) * 86400000;
-  const unused = [], used = [], expired = [];
-  for (const r of rows) {
-    if (!r.deviceId) { unused.push(r); continue; }
-    const end = (r.usedAt || 0) + dur(r.type);
-    if (now >= end) expired.push(r); else used.push(r);
-  }
-  return { unused, used, expired };
-}
+const CREATE_SQL=`CREATE TABLE IF NOT EXISTS codes (code TEXT PRIMARY KEY,type TEXT NOT NULL,deviceId TEXT,bundleId TEXT,usedAt INTEGER DEFAULT 0,createdAt INTEGER DEFAULT 0);`;
+async function ensureSchema(env){await env.RY7_CODES.exec(CREATE_SQL);}
+function splitLists(rows){const now=Date.now();const dur=(t)=>(t==="yearly"?365:30)*86400000;const unused=[],used=[],expired=[];for(const r of rows){if(!r.deviceId){unused.push(r);continue;}const end=(r.usedAt||0)+dur(r.type);if(now>=end)expired.push(r);else used.push(r);}return{unused,used,expired};}
 
 export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-    const path = url.pathname;
-
-    try {
-      // /admin (إن لم تكن ADMIN_HTML مضمّنة سنُرجع صفحة افتراضية)
-      if (path === "/admin") {
-        if (!isAdmin(request, env, url)) {
-          return jsonResponse({ success: false, title: "خطأ", align: "center", message: "🚫 الوصول مرفوض: غير مصرح لك." }, 401);
-        }
-        // ADMIN_HTML يجب أن تكون معرّفة خارجياً (نفس اللوحة التي أرسلتها)
-        // إن لم توجد نعرض رسالة بسيطة.
-        // eslint-disable-next-line no-undef
-        const html = (typeof ADMIN_HTML !== "undefined") ? ADMIN_HTML : "<h3 style='text-align:center'>لوحة الإدارة غير مضمّنة في هذا البناء</h3>";
-        return textResponse(html);
-      }
-
+  async fetch(request,env,ctx){
+    const url=new URL(request.url);const path=url.pathname;
+    try{
+      if(path==="/admin"){if(!isAdmin(request,env,url))return textResponse("<h3>🚫 غير مصرح</h3>",401);return textResponse(ADMIN_HTML);}
       await ensureSchema(env);
 
-      // ✅ تفعيل الكود (كل الرسائل موحّدة وبالوسط عبر align:"center")
-      if (path === "/api/activate" && request.method === "POST") {
-        const { code, deviceId, bundleId, deviceName } = await request.json().catch(() => ({}));
+      // ✅ تفعيل الكود
+      if(path==="/api/activate"&&request.method==="POST"){
+        const {code,deviceId,bundleId,deviceName}=await request.json().catch(()=>({}));
+        if(!code)return jsonResponse({success:false,message:"⚠️ يرجى إدخال الكود أولاً."},400);
 
-        if (!code) {
-          return jsonResponse(
-            { success: false, title: "خطأ", align: "center", message: "ادخل الكود اولاً\nثم اضغط على دخول 🤍" },
-            400
-          );
+        const row=await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code=?").bind(code).first();
+        if(!row)return jsonResponse({success:false,message:"🚫 الكود غير صحيح أو غير موجود."},400);
+
+        const durationDays=row.type==="yearly"?365:30;
+        if(row.deviceId&&row.deviceId!==deviceId)return jsonResponse({success:false,message:"🚫 هذا الكود مستخدم بالفعل على جهاز آخر."},400);
+
+        // لو أول مرة يستخدم
+        if(!row.deviceId){
+          await env.RY7_CODES.prepare("UPDATE codes SET deviceId=?,bundleId=?,usedAt=? WHERE code=?")
+            .bind(deviceId||"unknown",bundleId||"unknown",Date.now(),code).run();
+
+          // إنشاء كود إضافي تلقائي (bonus)
+          await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)")
+            .bind(randomCode(8),row.type,Date.now()).run();
         }
 
-        let row = await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code = ?").bind(code).first();
-        if (!row) {
-          return jsonResponse(
-            { success: false, title: "خطأ", align: "center", message: "الكود غير صحيح\nيرجى كتابة الكود الصحيح 🙂" },
-            400
-          );
+        // حساب الأيام المتبقية + تاريخ الانتهاء
+        let remainingDays=durationDays;
+        let endDate=null;
+        if(row.usedAt){
+          const elapsed=Math.floor((Date.now()-row.usedAt)/86400000);
+          remainingDays=Math.max(durationDays-elapsed,0);
+          endDate=new Date(row.usedAt+durationDays*86400000).toISOString();
+        } else {
+          endDate=new Date(Date.now()+durationDays*86400000).toISOString();
         }
 
-        const durationDays = row.type === "yearly" ? 365 : 30;
-
-        if (row.deviceId && row.deviceId !== deviceId) {
-          return jsonResponse(
-            { success: false, title: "خطأ", align: "center", message: "هذا الكود مستخدم بجهاز آخر\nاذهب واشتر كود جديد 🙂🏃🏻‍♂️" },
-            400
-          );
-        }
-
-        // أول استخدام: اربط بالجهاز وسجّل البداية + أنشئ كود بديل تلقائياً
-        if (!row.deviceId) {
-          await env.RY7_CODES.prepare(
-            "UPDATE codes SET deviceId = ?, bundleId = ?, usedAt = ? WHERE code = ?"
-          ).bind(deviceId || "unknown", bundleId || "unknown", Date.now(), code).run();
-
-          await env.RY7_CODES.prepare(
-            "INSERT INTO codes (code, type, createdAt) VALUES (?,?,?)"
-          ).bind(randomCode(8), row.type, Date.now()).run();
-
-          // أعد جلب السجل لضمان usedAt
-          row = await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code = ?").bind(code).first();
-        }
-
-        // احسب المتبقي وتاريخ الانتهاء من usedAt
-        const startMs = Number(row.usedAt || Date.now());
-        const endMs = startMs + durationDays * 86400000;
-        const nowMs = Date.now();
-        const remainingDays = Math.max(Math.ceil((endMs - nowMs) / 86400000), 0);
-        const endDateISO = new Date(endMs).toISOString();
-        const endDateLabel = new Date(endMs).toLocaleDateString("ar-SA", {
-          weekday: "long", year: "numeric", month: "long", day: "numeric"
-        });
-
-        // رسالة نجاح (نفس نمط الأخطاء، بالوسط)
-        const msg =
-          `🎉 تم التفعيل بنجاح\n` +
-          `📱 الجهاز: ${deviceName || "?"}\n` +
-          `📦 التطبيق: ${bundleId || "?"}\n` +
-          `🔑 النوع: ${row.type === "yearly" ? "سنوي" : "شهري"}\n` +
-          `⏳ متبقي: ${remainingDays} يوم\n` +
-          `📅 ينتهي في: ${endDateLabel}`;
-
+        // ✅ رسالة نجاح واضحة
         return jsonResponse({
-          success: true,
-          title: "نجاح",
-          align: "center",
-          status: "activated",
-          type: row.type,          // "monthly" | "yearly"
-          remainingDays,           // الأيام المتبقية
-          endDate: endDateISO,     // ISO 8601
-          deviceName: deviceName || "?",
-          bundleId: bundleId || "?",
-          message: msg             // نص جاهز لعرضه كما هو
+          success:true,
+          type:row.type,
+          remainingDays,
+          endDate,
+          deviceName:deviceName||"?",
+          bundleId:bundleId||"?",
+          message:`🎉 تم التفعيل بنجاح\n📱 الجهاز: ${deviceName||"?"}\n📦 التطبيق: ${bundleId||"?"}\n🔑 النوع: ${row.type==="yearly"?"سنوي":"شهري"}\n⏳ متبقي: ${remainingDays} يوم\n📅 ينتهي في: ${new Date(endDate).toLocaleDateString("ar-SA",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}`
         });
       }
 
       // 🔐 مسارات الإدارة
-      const adminNeeded = ["/api/generate", "/api/list", "/api/delete", "/api/reset", "/api/bulk_import"];
-      if (adminNeeded.includes(path) && !isAdmin(request, env, url)) {
-        return jsonResponse({ success: false, title: "خطأ", align: "center", message: "🚫 الوصول مرفوض: غير مصرح لك." }, 401);
-      }
+      const adminNeeded=["/api/generate","/api/list","/api/delete","/api/reset","/api/bulk_import"];
+      if(adminNeeded.includes(path)&&!isAdmin(request,env,url))return jsonResponse({success:false,message:"🚫 الوصول مرفوض: غير مصرح لك."},401);
 
-      // ✅ توليد الأكواد (عشوائي / مخصص مع prefix)
-      if (path === "/api/generate" && request.method === "POST") {
-        const { type, count, prefix } = await request.json().catch(() => ({}));
-        if (!["monthly", "yearly"].includes(type)) {
-          return jsonResponse({ success: false, title: "خطأ", align: "center", message: "❌ النوع غير صحيح. استخدم monthly أو yearly." }, 400);
-        }
-        const n = Math.max(1, Math.min(200, parseInt(count || 1)));
-        const out = [];
-        for (let i = 0; i < n; i++) {
+      // ✅ توليد الأكواد
+      if(path==="/api/generate"&&request.method==="POST"){
+        const {type,count,prefix}=await request.json().catch(()=>({}));
+        if(!["monthly","yearly"].includes(type))return jsonResponse({success:false,message:"❌ النوع غير صحيح. استخدم monthly أو yearly."},400);
+        const n=Math.max(1,Math.min(200,parseInt(count||1)));
+        const out=[];
+        for(let i=0;i<n;i++){
           let c;
-          if (prefix && /^[A-Z0-9]+$/i.test(prefix)) {
-            const remain = Math.max(0, 8 - prefix.length);
-            c = (prefix.toUpperCase() + randomCode(remain)).slice(0, 8);
-          } else {
-            c = randomCode(8);
+          if(prefix&&/^[A-Z0-9]+$/i.test(prefix)){
+            const remain=8-prefix.length;
+            c=prefix.toUpperCase()+randomCode(remain);
+          }else{
+            c=randomCode(8);
           }
-          await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)")
-            .bind(c, type, Date.now()).run();
+          await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)").bind(c,type,Date.now()).run();
           out.push(c);
         }
-        return jsonResponse({
-          success: true,
-          title: "نجاح",
-          align: "center",
-          generated: out,
-          message: `✅ تم توليد ${out.length} كود (${type === "yearly" ? "سنوي" : "شهري"})`
-        });
+        return jsonResponse({success:true,generated:out,message:`✅ تم توليد ${out.length} كود (${type==="yearly"?"سنوي":"شهري"})`});
       }
 
       // ✅ قائمة الأكواد
-      if (path === "/api/list" && request.method === "GET") {
-        const res = await env.RY7_CODES.prepare("SELECT * FROM codes ORDER BY createdAt DESC").all();
-        const { unused, used, expired } = splitLists(res.results || []);
-        return jsonResponse({
-          success: true,
-          title: "نجاح",
-          align: "center",
-          unused, used, expired,
-          message: "📋 تم جلب قائمة الأكواد بنجاح."
-        });
+      if(path==="/api/list"&&request.method==="GET"){
+        const res=await env.RY7_CODES.prepare("SELECT * FROM codes ORDER BY createdAt DESC").all();
+        const {unused,used,expired}=splitLists(res.results||[]);
+        return jsonResponse({success:true,unused,used,expired,message:"📋 تم جلب قائمة الأكواد بنجاح."});
       }
 
       // ✅ حذف كود
-      if (path === "/api/delete" && request.method === "POST") {
-        const { code } = await request.json().catch(() => ({}));
-        if (!code) {
-          return jsonResponse({ success: false, title: "خطأ", align: "center", message: "⚠️ يرجى إرسال الكود لحذفه." }, 400);
-        }
+      if(path==="/api/delete"&&request.method==="POST"){
+        const {code}=await request.json().catch(()=>({}));
+        if(!code)return jsonResponse({success:false,message:"⚠️ يرجى إرسال الكود لحذفه."},400);
         await env.RY7_CODES.prepare("DELETE FROM codes WHERE code=?").bind(code).run();
-        return jsonResponse({ success: true, title: "نجاح", align: "center", message: `🗑️ تم حذف الكود ${code}` });
+        return jsonResponse({success:true,message:`🗑️ تم حذف الكود ${code}`});
       }
 
       // ✅ إعادة تعيين كود
-      if (path === "/api/reset" && request.method === "POST") {
-        const { code } = await request.json().catch(() => ({}));
-        if (!code) {
-          return jsonResponse({ success: false, title: "خطأ", align: "center", message: "⚠️ يرجى إرسال الكود لإعادة تعيينه." }, 400);
-        }
+      if(path==="/api/reset"&&request.method==="POST"){
+        const {code}=await request.json().catch(()=>({}));
+        if(!code)return jsonResponse({success:false,message:"⚠️ يرجى إرسال الكود لإعادة تعيينه."},400);
         await env.RY7_CODES.prepare("UPDATE codes SET deviceId=NULL,bundleId=NULL,usedAt=0 WHERE code=?").bind(code).run();
-        return jsonResponse({ success: true, title: "نجاح", align: "center", message: `♻️ تم إعادة تعيين الكود ${code}` });
+        return jsonResponse({success:true,message:`♻️ تم إعادة تعيين الكود ${code}`});
       }
 
       // ✅ استيراد دفعي
-      if (path === "/api/bulk_import" && request.method === "POST") {
-        const { type, codes } = await request.json().catch(() => ({}));
-        if (!["monthly", "yearly"].includes(type)) {
-          return jsonResponse({ success: false, title: "خطأ", align: "center", message: "❌ النوع غير صحيح في الاستيراد." }, 400);
+      if(path==="/api/bulk_import"&&request.method==="POST"){
+        const {type,codes}=await request.json().catch(()=>({}));
+        if(!["monthly","yearly"].includes(type))return jsonResponse({success:false,message:"❌ النوع غير صحيح في الاستيراد."},400);
+        let ok=0,dup=0,bad=0;
+        for(const raw of codes||[]){
+          const c=String(raw||"").trim().toUpperCase();
+          if(!/^[A-Z0-9]{8}$/.test(c)){bad++;continue;}
+          try{await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)").bind(c,type,Date.now()).run();ok++;}
+          catch(e){dup++;}
         }
-        let ok = 0, dup = 0, bad = 0;
-        for (const raw of codes || []) {
-          const c = String(raw || "").trim().toUpperCase();
-          if (!/^[A-Z0-9]{8}$/.test(c)) { bad++; continue; }
-          try {
-            await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)").bind(c, type, Date.now()).run();
-            ok++;
-          } catch (e) { dup++; }
-        }
-        return jsonResponse({
-          success: true,
-          title: "نجاح",
-          align: "center",
-          message: `📥 استيراد: جديد ${ok} | مكرر ${dup} | غير صالح ${bad}`
-        });
+        return jsonResponse({success:true,message:`📥 استيراد: جديد ${ok} | مكرر ${dup} | غير صالح ${bad}`});
       }
 
       // ✅ حالة السيرفر
-      if (path === "/api/status") {
-        return jsonResponse({ success: true, title: "نجاح", align: "center", message: "✅ API يعمل بشكل سليم." });
-      }
+      if(path==="/api/status"){return jsonResponse({success:true,message:"✅ API يعمل بشكل سليم."});}
 
       // ❌ مسار غير موجود
-      return jsonResponse({ success: false, title: "خطأ", align: "center", message: "❌ المسار المطلوب غير موجود." }, 404);
+      return jsonResponse({success:false,message:"❌ المسار المطلوب غير موجود."},404);
 
-    } catch (err) {
-      return jsonResponse({ success: false, title: "خطأ", align: "center", message: "❌ خطأ داخلي: " + err.message }, 500);
+    }catch(err){
+      return jsonResponse({success:false,message:"❌ خطأ داخلي: "+err.message},500);
     }
   }
 };
