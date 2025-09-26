@@ -227,199 +227,169 @@ export default {
       await ensureSchema(env);
 
       // ✅ تفعيل الكود
-      // ===============================
-      if (path === "/api/activate" && request.method === "POST") {
-        const { code, deviceId, bundleId, deviceName } = await request.json().catch(() => ({}));
+if (path === "/api/activate" && request.method === "POST") {
+  const { code, deviceId, bundleId, deviceName } = await request.json().catch(() => ({}));
 
-        // 1) التحقق من الإدخال
-        if (!code) {
-          return jsonResponse(
-            fail("ادخل الكود اولاً\n ثم اضغط على دخول 🤍", "validation"),
-            400
-          );
-        }
+  // رسائل الخطأ القياسية
+  if (!code) {
+    return jsonResponse(
+      { success: false, title: "خطأ", message: "ادخل الكود اولاً\n ثم اضغط على دخول 🤍", align: "center" },
+      400
+    );
+  }
 
-        // 2) جلب السجل
-        let row = await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code = ?")
-          .bind(code)
-          .first();
+  // البحث عن الكود
+  let row = await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code = ?")
+    .bind(code)
+    .first();
 
-        if (!row) {
-          return jsonResponse(
-            fail("الكود غير صحيح\nيرجى كتابة الكود الصحيح 🙂", "invalid_code"),
-            400
-          );
-        }
+  if (!row) {
+    return jsonResponse(
+      { success: false, title: "خطأ", message: "الكود غير صحيح\nيرجى كتابة الكود الصحيح 🙂", align: "center" },
+      400
+    );
+  }
 
-        const durationDays = row.type === "yearly" ? 365 : 30;
+  const durationDays = row.type === "yearly" ? 365 : 30;
 
-        // 3) مستخدم على جهاز آخر
-        if (row.deviceId && row.deviceId !== deviceId) {
-          return jsonResponse(
-            fail("هذا الكود مستخدم بجهاز اخر\nاذهب واشتر كود جديد 🙂🏃🏻‍♂️", "device_mismatch"),
-            400
-          );
-        }
+  // إن كان مستخدماً على جهاز آخر
+  if (row.deviceId && row.deviceId !== deviceId) {
+    return jsonResponse(
+      {
+        success: false,
+        title: "خطأ",
+        message: "هذا الكود مستخدم بجهاز اخر\nاذهب واشتر كود جديد 🙂🏃🏻‍♂️",
+        align: "center",
+      },
+      400
+    );
+  }
 
-        // 4) أوّل استخدام: اربط القيم واحفظ usedAt + أنشئ بديل تلقائي
-        if (!row.deviceId) {
-          await env.RY7_CODES.prepare(
-            "UPDATE codes SET deviceId = ?, bundleId = ?, usedAt = ? WHERE code = ?"
-          )
-            .bind(deviceId || "unknown", bundleId || "unknown", Date.now(), code)
-            .run();
+  // أول استخدام: اربط بالجهاز وسجّل وقت البداية، وأنشئ كوداً بديلاً تلقائياً
+  if (!row.deviceId) {
+    await env.RY7_CODES.prepare(
+      "UPDATE codes SET deviceId = ?, bundleId = ?, usedAt = ? WHERE code = ?"
+    )
+      .bind(deviceId || "unknown", bundleId || "unknown", Date.now(), code)
+      .run();
 
-          await env.RY7_CODES.prepare(
-            "INSERT INTO codes (code, type, createdAt) VALUES (?,?,?)"
-          )
-            .bind(randomCode(8), row.type, Date.now())
-            .run();
+    await env.RY7_CODES.prepare(
+      "INSERT INTO codes (code, type, createdAt) VALUES (?,?,?)"
+    )
+      .bind(randomCode(8), row.type, Date.now())
+      .run();
 
-          // أعِد الجلب لضمان وجود usedAt
-          row = await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code = ?")
-            .bind(code)
-            .first();
-        }
+    // أعِد جلب السجل بعد التحديث لضمان وجود usedAt
+    row = await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code = ?")
+      .bind(code)
+      .first();
+  }
 
-        // 5) حساب المتبقي/الانتهاء على أساس usedAt
-        const startMs = Number(row.usedAt || Date.now());
-        const endMs = startMs + durationDays * 86400000;
-        const nowMs = Date.now();
-        const remainingDays = Math.max(Math.ceil((endMs - nowMs) / 86400000), 0);
-        const endDateISO = new Date(endMs).toISOString();
-        const endDateLabel = new Date(endMs).toLocaleDateString("ar-SA", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
+  // حساب المتبقي وتاريخ الانتهاء من قيمة usedAt
+  const startMs = Number(row.usedAt || Date.now());
+  const endMs = startMs + durationDays * 86400000;
+  const nowMs = Date.now();
+  const remainingDays = Math.max(Math.ceil((endMs - nowMs) / 86400000), 0);
+  const endDateISO = new Date(endMs).toISOString();
+  const endDateLabel = new Date(endMs).toLocaleDateString("ar-SA", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
-        // 6) نص النجاح الموحد — يُعرض كما هو في iOS (UIAlertController المخصص)
-        const msg =
-          `🎉 تم التفعيل بنجاح\n` +
-          `📱 الجهاز: ${deviceName || "?"}\n` +
-          `📦 التطبيق: ${bundleId || "?"}\n` +
-          `🔑 النوع: ${row.type === "yearly" ? "سنوي" : "شهري"}\n` +
-          `⏳ متبقي: ${remainingDays} يوم\n` +
-          `📅 ينتهي في: ${endDateLabel}`;
+  // رسالة النجاح النهائية (موحّدة مثل باقي الرسائل)
+  const msg =
+    `🎉 تم التفعيل بنجاح\n` +
+    `📱 الجهاز: ${deviceName || "?"}\n` +
+    `📦 التطبيق: ${bundleId || "?"}\n` +
+    `🔑 النوع: ${row.type === "yearly" ? "سنوي" : "شهري"}\n` +
+    `⏳ متبقي: ${remainingDays} يوم\n` +
+    `📅 ينتهي في: ${endDateLabel}`;
 
-        return jsonResponse(
-          ok(msg, {
-            title: "نجاح",
-            status: "activated",
-            type: row.type,        // "monthly" | "yearly"
-            remainingDays,         // الأيام المتبقية
-            endDate: endDateISO,   // ISO 8601
-            deviceName: deviceName || "?",
-            bundleId: bundleId || "?"
-          })
-        );
-      }
+  return jsonResponse({
+    success: true,
+    title: "نجاح",
+    status: "activated",
+    type: row.type,            // "monthly" | "yearly"
+    remainingDays,             // عدد الأيام المتبقية
+    endDate: endDateISO,       // ISO 8601
+    deviceName: deviceName || "?",
+    bundleId: bundleId || "?",
+    message: msg,              // نص جاهز للعرض في iOS
+    align: "center"            // 🆕 محاذاة النص للمنتصف
+  });
+}
 
-      // ===============================
       // 🔐 مسارات الإدارة
-      // ===============================
-      const adminNeeded = ["/api/generate", "/api/list", "/api/delete", "/api/reset", "/api/bulk_import"];
-      if (adminNeeded.includes(path) && !isAdmin(request, env, url)) {
-        return jsonResponse(fail("🚫 الوصول مرفوض: غير مصرح لك.", "unauthorized", "مرفوض"), 401);
-      }
+      const adminNeeded=["/api/generate","/api/list","/api/delete","/api/reset","/api/bulk_import"];
+      if(adminNeeded.includes(path)&&!isAdmin(request,env,url))return jsonResponse({success:false,message:"🚫 الوصول مرفوض: غير مصرح لك."},401);
 
       // ✅ توليد الأكواد
-      if (path === "/api/generate" && request.method === "POST") {
-        const { type, count, prefix } = await request.json().catch(() => ({}));
-        if (!["monthly", "yearly"].includes(type)) {
-          return jsonResponse(fail("❌ النوع غير صحيح. استخدم monthly أو yearly.", "validation"), 400);
-        }
-        const n = Math.max(1, Math.min(200, parseInt(count || 1)));
-        const out = [];
-
-        for (let i = 0; i < n; i++) {
+      if(path==="/api/generate"&&request.method==="POST"){
+        const {type,count,prefix}=await request.json().catch(()=>({}));
+        if(!["monthly","yearly"].includes(type))return jsonResponse({success:false,message:"❌ النوع غير صحيح. استخدم monthly أو yearly."},400);
+        const n=Math.max(1,Math.min(200,parseInt(count||1)));
+        const out=[];
+        for(let i=0;i<n;i++){
           let c;
-          if (prefix && /^[A-Z0-9]+$/i.test(prefix)) {
-            const remain = Math.max(0, 8 - prefix.length);
-            c = (prefix.toUpperCase() + randomCode(remain)).slice(0, 8);
-          } else {
-            c = randomCode(8);
+          if(prefix&&/^[A-Z0-9]+$/i.test(prefix)){
+            const remain=8-prefix.length;
+            c=prefix.toUpperCase()+randomCode(remain);
+          }else{
+            c=randomCode(8);
           }
-          await env.RY7_CODES.prepare(
-            "INSERT INTO codes (code, type, createdAt) VALUES (?,?,?)"
-          ).bind(c, type, Date.now()).run();
+          await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)").bind(c,type,Date.now()).run();
           out.push(c);
         }
-
-        return jsonResponse(
-          ok(`✅ تم توليد ${out.length} كود (${type === "yearly" ? "سنوي" : "شهري"})`, {
-            generated: out,
-            status: "generated"
-          })
-        );
+        return jsonResponse({success:true,generated:out,message:`✅ تم توليد ${out.length} كود (${type==="yearly"?"سنوي":"شهري"})`});
       }
 
       // ✅ قائمة الأكواد
-      if (path === "/api/list" && request.method === "GET") {
-        const res = await env.RY7_CODES.prepare("SELECT * FROM codes ORDER BY createdAt DESC").all();
-        const { unused, used, expired } = splitLists(res.results || []);
-        return jsonResponse(
-          ok("📋 تم جلب قائمة الأكواد بنجاح.", {
-            unused, used, expired,
-            status: "listed"
-          })
-        );
+      if(path==="/api/list"&&request.method==="GET"){
+        const res=await env.RY7_CODES.prepare("SELECT * FROM codes ORDER BY createdAt DESC").all();
+        const {unused,used,expired}=splitLists(res.results||[]);
+        return jsonResponse({success:true,unused,used,expired,message:"📋 تم جلب قائمة الأكواد بنجاح."});
       }
 
       // ✅ حذف كود
-      if (path === "/api/delete" && request.method === "POST") {
-        const { code } = await request.json().catch(() => ({}));
-        if (!code) return jsonResponse(fail("⚠️ يرجى إرسال الكود لحذفه.", "validation"), 400);
+      if(path==="/api/delete"&&request.method==="POST"){
+        const {code}=await request.json().catch(()=>({}));
+        if(!code)return jsonResponse({success:false,message:"⚠️ يرجى إرسال الكود لحذفه."},400);
         await env.RY7_CODES.prepare("DELETE FROM codes WHERE code=?").bind(code).run();
-        return jsonResponse(ok(`🗑️ تم حذف الكود ${code}`, { status: "deleted" }));
+        return jsonResponse({success:true,message:`🗑️ تم حذف الكود ${code}`});
       }
 
       // ✅ إعادة تعيين كود
-      if (path === "/api/reset" && request.method === "POST") {
-        const { code } = await request.json().catch(() => ({}));
-        if (!code) return jsonResponse(fail("⚠️ يرجى إرسال الكود لإعادة تعيينه.", "validation"), 400);
-        await env.RY7_CODES.prepare(
-          "UPDATE codes SET deviceId=NULL, bundleId=NULL, usedAt=0 WHERE code=?"
-        ).bind(code).run();
-        return jsonResponse(ok(`♻️ تم إعادة تعيين الكود ${code}`, { status: "reset" }));
+      if(path==="/api/reset"&&request.method==="POST"){
+        const {code}=await request.json().catch(()=>({}));
+        if(!code)return jsonResponse({success:false,message:"⚠️ يرجى إرسال الكود لإعادة تعيينه."},400);
+        await env.RY7_CODES.prepare("UPDATE codes SET deviceId=NULL,bundleId=NULL,usedAt=0 WHERE code=?").bind(code).run();
+        return jsonResponse({success:true,message:`♻️ تم إعادة تعيين الكود ${code}`});
       }
 
       // ✅ استيراد دفعي
-      if (path === "/api/bulk_import" && request.method === "POST") {
-        const { type, codes } = await request.json().catch(() => ({}));
-        if (!["monthly", "yearly"].includes(type)) {
-          return jsonResponse(fail("❌ النوع غير صحيح في الاستيراد.", "validation"), 400);
+      if(path==="/api/bulk_import"&&request.method==="POST"){
+        const {type,codes}=await request.json().catch(()=>({}));
+        if(!["monthly","yearly"].includes(type))return jsonResponse({success:false,message:"❌ النوع غير صحيح في الاستيراد."},400);
+        let ok=0,dup=0,bad=0;
+        for(const raw of codes||[]){
+          const c=String(raw||"").trim().toUpperCase();
+          if(!/^[A-Z0-9]{8}$/.test(c)){bad++;continue;}
+          try{await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)").bind(c,type,Date.now()).run();ok++;}
+          catch(e){dup++;}
         }
-        let okCount = 0, dup = 0, bad = 0;
-        for (const raw of codes || []) {
-          const c = String(raw || "").trim().toUpperCase();
-          if (!/^[A-Z0-9]{8}$/.test(c)) { bad++; continue; }
-          try {
-            await env.RY7_CODES.prepare(
-              "INSERT INTO codes (code, type, createdAt) VALUES (?,?,?)"
-            ).bind(c, type, Date.now()).run();
-            okCount++;
-          } catch (e) { dup++; }
-        }
-        return jsonResponse(
-          ok(`📥 استيراد: جديد ${okCount} | مكرر ${dup} | غير صالح ${bad}`, {
-            status: "imported",
-            imported: okCount, duplicated: dup, invalid: bad
-          })
-        );
+        return jsonResponse({success:true,message:`📥 استيراد: جديد ${ok} | مكرر ${dup} | غير صالح ${bad}`});
       }
 
       // ✅ حالة السيرفر
-      if (path === "/api/status") {
-        return jsonResponse(ok("✅ API يعمل بشكل سليم.", { status: "alive" }));
-      }
+      if(path==="/api/status"){return jsonResponse({success:true,message:"✅ API يعمل بشكل سليم."});}
 
       // ❌ مسار غير موجود
-      return jsonResponse(fail("❌ المسار المطلوب غير موجود.", "not_found", "غير موجود"), 404);
+      return jsonResponse({success:false,message:"❌ المسار المطلوب غير موجود."},404);
 
-    } catch (err) {
-      return jsonResponse(fail("❌ خطأ داخلي: " + err.message, "exception", "عطل"), 500);
+    }catch(err){
+      return jsonResponse({success:false,message:"❌ خطأ داخلي: "+err.message},500);
     }
   }
 };
