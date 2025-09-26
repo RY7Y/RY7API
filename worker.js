@@ -230,7 +230,7 @@ export default {
         if(!code)return jsonResponse({success:false,message:"أرسل الكود"},400);
 
         const row=await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code=?").bind(code).first();
-        if(!row)return jsonResponse({success:false,message:"الكود غير صحيح"},400);
+        if(!row)return jsonResponse({success:false,message:"تأكد من كتابة الكود الصحيح 🙂"},400);
 
         const durationDays=row.type==="yearly"?365:30;
         if(row.deviceId&&row.deviceId!==deviceId)return jsonResponse({success:false,message:"الكود مستخدم بجهاز آخر"},400);
