@@ -298,7 +298,7 @@ if (path === "/api/activate" && request.method === "POST") {
     day: "numeric",
   });
 
-  // رسالة النجاح النهائية (موحدة مع باقي الرسائل)
+  // رسالة النجاح النهائية (مطابقة لباقي الرسائل)
   const msg =
     `🎉 تم التفعيل بنجاح\n` +
     `📱 الجهاز: ${deviceName || "?"}\n` +
@@ -317,7 +317,7 @@ if (path === "/api/activate" && request.method === "POST") {
     endDate: endDateISO,       // ISO 8601
     deviceName: deviceName || "?",
     bundleId: bundleId || "?",
-    align: "center"            // محاذاة للمنتصف
+    align: "center"            // ✅ نفس باقي الرسائل (منتصف)
   });
 }
 
