@@ -225,48 +225,97 @@ export default {
       await ensureSchema(env);
 
       // ✅ تفعيل الكود
-      if(path==="/api/activate"&&request.method==="POST"){
-        const {code,deviceId,bundleId,deviceName}=await request.json().catch(()=>({}));
-        if(!code)return jsonResponse({success:false,message:"ادخل الكود اولاً\n ثم اضغط على دخول 🤍"},400);
+if (path === "/api/activate" && request.method === "POST") {
+  const { code, deviceId, bundleId, deviceName } = await request.json().catch(() => ({}));
 
-        const row=await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code=?").bind(code).first();
-        if(!row)return jsonResponse({success:false,message:"الكود غير صحيح\nيرجى كتابة الكود الصحيح 🙂"},400);
+  // رسائل الخطأ القياسية
+  if (!code) {
+    return jsonResponse(
+      { success: false, message: "ادخل الكود اولاً\n ثم اضغط على دخول 🤍", title: "خطأ" },
+      400
+    );
+  }
 
-        const durationDays=row.type==="yearly"?365:30;
-        if(row.deviceId&&row.deviceId!==deviceId)return jsonResponse({success:false,message:"هذا الكود مستخدم بجهاز اخر\nاذهب واشتر كود جديد 🙂🏃🏻‍♂️"},400);
+  // البحث عن الكود
+  let row = await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code = ?")
+    .bind(code)
+    .first();
 
-        // لو أول مرة يستخدم
-        if(!row.deviceId){
-          await env.RY7_CODES.prepare("UPDATE codes SET deviceId=?,bundleId=?,usedAt=? WHERE code=?")
-            .bind(deviceId||"unknown",bundleId||"unknown",Date.now(),code).run();
+  if (!row) {
+    return jsonResponse(
+      { success: false, message: "الكود غير صحيح\nيرجى كتابة الكود الصحيح 🙂", title: "خطأ" },
+      400
+    );
+  }
 
-          // إنشاء كود إضافي تلقائي (bonus)
-          await env.RY7_CODES.prepare("INSERT INTO codes (code,type,createdAt) VALUES (?,?,?)")
-            .bind(randomCode(8),row.type,Date.now()).run();
-        }
+  const durationDays = row.type === "yearly" ? 365 : 30;
 
-        // حساب الأيام المتبقية + تاريخ الانتهاء
-        let remainingDays=durationDays;
-        let endDate=null;
-        if(row.usedAt){
-          const elapsed=Math.floor((Date.now()-row.usedAt)/86400000);
-          remainingDays=Math.max(durationDays-elapsed,0);
-          endDate=new Date(row.usedAt+durationDays*86400000).toISOString();
-        } else {
-          endDate=new Date(Date.now()+durationDays*86400000).toISOString();
-        }
+  // إن كان مستخدماً على جهاز آخر
+  if (row.deviceId && row.deviceId !== deviceId) {
+    return jsonResponse(
+      {
+        success: false,
+        message: "هذا الكود مستخدم بجهاز اخر\nاذهب واشتر كود جديد 🙂🏃🏻‍♂️",
+        title: "خطأ",
+      },
+      400
+    );
+  }
 
+  // أول استخدام: اربط بالجهاز وسجّل وقت البداية، وأنشئ كوداً بديلاً تلقائياً
+  if (!row.deviceId) {
+    await env.RY7_CODES.prepare(
+      "UPDATE codes SET deviceId = ?, bundleId = ?, usedAt = ? WHERE code = ?"
+    )
+      .bind(deviceId || "unknown", bundleId || "unknown", Date.now(), code)
+      .run();
 
-        return jsonResponse({
-          success:true,
-          type:row.type,
-          remainingDays,
-          endDate,
-          deviceName:deviceName||"?",
-          bundleId:bundleId||"?",
-          message:`🎉 تم التفعيل بنجاح\n📱 الجهاز: ${deviceName||"?"}\n📦 التطبيق: ${bundleId||"?"}\n🔑 النوع: ${row.type==="yearly"?"سنوي":"شهري"}\n⏳ متبقي: ${remainingDays} يوم\n📅 ينتهي في: ${new Date(endDate).toLocaleDateString("ar-SA",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}`
-        });
-      }
+    await env.RY7_CODES.prepare(
+      "INSERT INTO codes (code, type, createdAt) VALUES (?,?,?)"
+    )
+      .bind(randomCode(8), row.type, Date.now())
+      .run();
+
+    // أعِد جلب السجل بعد التحديث لضمان وجود usedAt
+    row = await env.RY7_CODES.prepare("SELECT * FROM codes WHERE code = ?")
+      .bind(code)
+      .first();
+  }
+
+  // حساب المتبقي وتاريخ الانتهاء من قيمة usedAt
+  const startMs = Number(row.usedAt || Date.now());
+  const endMs = startMs + durationDays * 86400000;
+  const nowMs = Date.now();
+  const remainingDays = Math.max(Math.ceil((endMs - nowMs) / 86400000), 0);
+  const endDateISO = new Date(endMs).toISOString();
+  const endDateLabel = new Date(endMs).toLocaleDateString("ar-SA", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  // رسالة النجاح النهائية (تُعرَض كما هي في iOS)
+  const msg =
+    `🎉 تم التفعيل بنجاح\n` +
+    `📱 الجهاز: ${deviceName || "?"}\n` +
+    `📦 التطبيق: ${bundleId || "?"}\n` +
+    `🔑 النوع: ${row.type === "yearly" ? "سنوي" : "شهري"}\n` +
+    `⏳ متبقي: ${remainingDays} يوم\n` +
+    `📅 ينتهي في: ${endDateLabel}`;
+
+  return jsonResponse({
+    success: true,
+    title: "نجاح",
+    status: "activated",
+    type: row.type,            // "monthly" | "yearly"
+    remainingDays,             // عدد الأيام المتبقية
+    endDate: endDateISO,       // ISO 8601
+    deviceName: deviceName || "?",
+    bundleId: bundleId || "?",
+    message: msg               // نص جاهز للعرض في iOS
+  });
+}
 
       // 🔐 مسارات الإدارة
       const adminNeeded=["/api/generate","/api/list","/api/delete","/api/reset","/api/bulk_import"];
